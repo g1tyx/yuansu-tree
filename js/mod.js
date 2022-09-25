@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Beta v3.0",
-	name: "这是个硬家伙",
+	num: "Beta v6.0",
+	name: "哇！挖到钻石了！",
 }
 
 let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
@@ -26,9 +26,11 @@ let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
 		- 修复氢升级“氢气”“氢阳离子”效果为0的bug。<br>
 		<h3>Beta v5.0“这是个硬家伙”</h3><br>
 		- 加入硼层级并加入升级、里程碑。对铍层级增加4个里程碑。<br>
-		- 修复氢升级“氢气”“氢阳离子”效果为0的bug。<br>`
+		<h3>Beta v6.0“哇！挖到钻石了！”</h3><br>
+		- 加入碳层级并加入可购买、很多里程碑。<br>
+		- 对每个层级加入了进度条用来显示距离下一层的进度。<br>`
 
-let winText = `恭喜你！你已经到达了Beta v5.0的结局！等待碳层级加入更多内容吧！`
+let winText = `恭喜你！你已经到达了Beta v6.0的结局！等待碳层级加入更多内容吧！`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
@@ -67,7 +69,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.C.points.gte(new Decimal("1"))
+	return player.N.points.gte(new Decimal("1"))
 }
 
 
@@ -89,5 +91,5 @@ function maxTickLength() {
 function fixOldSave(oldVersion){
 }
 var displayThings = [
-	"当前残局:1碳",
+	"当前残局:1氮",
 ]
