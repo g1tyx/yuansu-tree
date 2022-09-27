@@ -75,6 +75,8 @@
         mult = mult.mul(format(tmp.Be.effect))
         if(player.B.unlocked) mult = mult.mul(format(tmp.B.BpowerEffect))
         if(player.C.unlocked) mult = mult.mul(format(tmp.C.effect))
+        if(player.N.unlocked) mult = mult.mul(format(tmp.N.Effect))
+        if(hasMilestone("C",9)) mult = mult.mul(1e6)
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -189,8 +191,8 @@ addLayer("He", {
                             return req
                         },
                         display() {
-                            let f = player.points.add(1).max(1)
-                            let r = "到达" + format(this.req()) + " 基本粒子以解锁下一种元素. (" + format(f.log10().div(this.req().log10()).mul(100).min(100)) + "%)"
+                            let f = player.H.points.add(1).max(1)
+                            let r = "到达" + format(this.req()) + " 氢以解锁下一种元素. (" + format(f.log10().div(this.req().log10()).mul(100).min(100)) + "%)"
                             
                             return r
                         },
@@ -279,7 +281,7 @@ addLayer("He", {
                               buy() {
                                  setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
                               },
-                              display() {return `一种拥有巨大潜力的新型能源，在月球上有巨大储备。\n持有氦-3分子数目： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}氦\n效果：氢获取*${format(this.effect())}倍`},
+                              display() {return `(*不消耗氦)一种拥有巨大潜力的新型能源，在月球上有巨大储备。\n持有氦-3分子数目： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}氦\n效果：氢获取*${format(this.effect())}倍`},
                               effect(x) { 
                                 mult2 = new Decimal(x).add(1).pow(0.7)
                                 return new Decimal(mult2)}
@@ -595,19 +597,20 @@ addLayer("He", {
                                                     },
                                                     effect(){
                                                      let eff = player.Be.points.pow(2.5).add(1)
+                                                     if (hasUpgrade("N",14)) eff = eff.mul(upgradeEffect("N",14))
                                                      return eff
 
                                                     },
                                                     
                                                                 effectDescription() {
-                                                        return "倍增氢获取 " + (tmp.Be.effect) + "x"
+                                                        return "倍增氢获取 " + format(tmp.Be.effect) + "x"
                                                     },
                                                     canBuyMax() { return hasMilestone("Be", 2) },
                                                     resetsNothing() { return true}},
                                                         
                                                     addLayer("B", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
-                                                            unlocked: false,                     // You can add more variables here to add them to your layer.
+                                                            unlocked: true,                     // You can add more variables here to add them to your layer.
                                                             points: new Decimal(0),  
                                                             Apower: new Decimal(1),
                                                             Bpower: new Decimal(1),
@@ -772,6 +775,7 @@ addLayer("He", {
                                                         Apowerbase = Apowerbase.mul(player.B.Apower).pow(0.4).add(1)
                                                         if (!hasMilestone("B", 0)) Apowerbase = Apowerbase.pow(0)
                                                         if (hasUpgrade("B", 12)) Apowerbase = Apowerbase.pow(upgradeEffect("B",12))
+                                                        Apowerbase = Apowerbase.mul(tmp.B.DpowerEffect)
                                                         
 
                                                         return Apowerbase;
@@ -782,6 +786,7 @@ addLayer("He", {
                                                         Bpowerbase = Bpowerbase.mul(player.B.Bpower).pow(0.3).add(1)
                                                         if (!hasMilestone("B", 2)) Bpowerbase = Bpowerbase.pow(0)
                                                         if (hasUpgrade("B", 12)) Bpowerbase = Bpowerbase.pow(upgradeEffect("B",12))
+                                                        Bpowerbase = Bpowerbase.mul(tmp.B.DpowerEffect)
                                                         return Bpowerbase;
                                                             }    ,
                                                          CpowerEffect(){
@@ -789,13 +794,14 @@ addLayer("He", {
                                                                 Cpowerbase = Cpowerbase.mul(player.B.Cpower).pow(0.2).add(1)
                                                                 if (!hasMilestone("B", 4)) Cpowerbase = Cpowerbase.pow(0)
                                                                 if (hasUpgrade("B", 12)) Cpowerbase = Cpowerbase.pow(upgradeEffect("B",12))
+                                                                Cpowerbase = Cpowerbase.mul(tmp.B.DpowerEffect)
                                                                 return Cpowerbase;
                                                                 
                                                                 }     ,      
                                                         DpowerEffect(){
                                                                  let    Dpowerbase = new Decimal(2);
                                                                  Dpowerbase = Dpowerbase.mul(player.B.Dpower).pow(0.1).add(1)
-                                                                 Dpowerbase = Dpowerbase.pow(0)
+                                                                 if (!hasMilestone("N",2))Dpowerbase = Dpowerbase.pow(0)
                                                                     return Dpowerbase;
                                                                 
                                                         }       ,       
@@ -857,6 +863,7 @@ addLayer("He", {
                                                         Tier(){return getBuyableAmount("C",12)},
                                                         PowerEffect(){let PowerEffect = new Decimal(1)
                                                             if (hasMilestone("C",2)) PowerEffect = (player.C.Cpower).pow(0.3).add(1)
+                                                            if (hasUpgrade("N",12)) PowerEffect = PowerEffect.mul(upgradeEffect("N",12))
                                                             return PowerEffect},
                                                         Cdim1effect(){return buyableEffect("C",21)},
                                                     
@@ -880,7 +887,9 @@ addLayer("He", {
                                                             mult = mult.mul(tmp.C.PowerEffect)
                                                         
                                                             if(hasMilestone("C",4)) mult = mult.mul(2)   
-                                                            if(hasMilestone("C",5)) mult = mult.mul(2)                     // Returns your multiplier to your gain of the prestige resource.
+                                                            if(hasMilestone("C",5)) mult = mult.mul(2)  
+                                                            if (hasMilestone("C",8)) mult = mult.mul(10)
+                                                            if (hasMilestone("C",9)) mult = mult.mul(10)                     // Returns your multiplier to your gain of the prestige resource.
                                                             return mult     
                                                                  // Factor in any bonuses multiplying gain here.
                                                         },
@@ -918,7 +927,10 @@ addLayer("He", {
                                                                 unlocked(){return hasMilestone("C",3)},
                                                                 title: "级别",
                                                                 style: {"background-color":'#00FFFF'},
-                                                                cost(x) {return new Decimal(10).mul(new Decimal(10).pow(x))},
+                                                                cost(x) {
+                                                                    if(x<10){ return new Decimal(10).mul(new Decimal(10).pow(x))}
+                                                                    if(9<x<100){ return new Decimal(10).mul(new Decimal(5000).pow((x).sub(7)))}
+                                                                },
                                                                 canAfford() { return player.C.Cpower.gte(this.cost())},
                                                                 buy() {
                                                                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
@@ -928,16 +940,17 @@ addLayer("He", {
                                                                    player.C.Cpower = new Decimal(0)
                                                                    
                                                                 },
-                                                                display() {return `重置木炭能量，但提升级别。\n当前层级： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}木炭能量\n效果：级别1：解锁木炭能量发生器。<br>级别2：解锁木炭能量助推器，双倍碳获取。<br>级别3：解锁木炭能量增强器，双倍碳获取。`},
+                                                                display() {return `重置木炭能量，但提升级别。\n当前层级： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}木炭能量\n效果：级别1：解锁木炭能量发生器。<br>级别2：解锁木炭能量助推器，双倍碳获取。<br>级别3：解锁木炭能量增强器，双倍碳获取。<br>级别8：木炭能量和碳获取*10。`},
                                                                 effect(x) { 
                                                                   eff = new Decimal(x)
                                                                   return new Decimal(eff)}
                                                               },
                                                               12: {
-                                                                unlocked(){return player.C.Rank.gte(5)},
+                                                                unlocked(){return tmp.C.Rank.gte(5)},
                                                                 title: "阶层",
+                                                                style: {"background-color":'#00FFFF'},
                                                                 cost(x) {return new Decimal(5).add(new Decimal(4).mul(x))},
-                                                                canAfford() { return player.C.Rank.gte(this.cost())},
+                                                                canAfford() { return tmp.C.Rank.gte(this.cost())},
                                                                 buy() {
                                                                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
                                                                    setBuyableAmount("C",11, new Decimal(0))
@@ -946,7 +959,7 @@ addLayer("He", {
                                                                    setBuyableAmount(this.layer, 23,new Decimal(0))
                                                                    player.C.Cpower = new Decimal(0)
                                                                 },
-                                                                display() {return `重置级别，但提升阶层。\n当前阶层： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}层级\n效果：阶层1：木炭能量获取^1.15。`},
+                                                                display() {return `重置级别，但提升阶层。\n当前阶层： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}层级\n效果：阶层1：木炭能量获取^1.15。<br>阶层2：木炭能量和碳获取*10，氢获取*1e6。`},
                                                                 effect(x) { 
                                                                   eff = new Decimal(x)
                                                                   return new Decimal(eff)}
@@ -964,8 +977,14 @@ addLayer("He", {
                                                               effect(x) { 
                                                                 eff = new Decimal(x)
                                                                 eff = eff.mul(tmp.C.buyables[22].effect)
-                                                                return new Decimal(eff)}
+                                                                if (hasUpgrade("N",11)) eff = eff.mul(upgradeEffect("N",11))
+                                                                if (hasMilestone("C",8)) eff = eff.mul(10)
+                                                                if (hasMilestone("C",9)) eff = eff.mul(10)
+                                                                if (hasMilestone("C",7)) eff = eff.pow(1.15)
+                                                                
+                                                                return eff
                                                             },
+                                                        },
                                                             22: {
                                                                 title: "木炭能量助推器",
                                                                 unlocked(){return layers.C.Rank().gte(2)},
@@ -973,12 +992,12 @@ addLayer("He", {
                                                                 canAfford() { return player.C.Cpower.gte(this.cost())},
                                                                 buy() {
                                                                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
-                                                                   player.C.Cpower = player.C.Cpower.sub(cost)
+                                                                   player[this.layer].Cpower = player[this.layer].Cpower.sub(tmp[this.layer].buyables[this.id].cost)
                                                                 },
                                                                 display() {return `倍增木炭能量发生器的效果。\n持有木炭能量助推器数量： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}木炭能量\n效果：木炭能量发生器效果*${format(this.effect())}`},
                                                                 effect(x) { 
                                                                   eff = new Decimal(x).mul(2).add(1)
-                                                                  eff = eff.mul(tmp.C.buyables[23].effect)
+                                                                  eff = eff.pow(tmp.C.buyables[23].effect)
                                                                   return new Decimal(eff)}
                                                               },
                                                               23: {
@@ -988,11 +1007,12 @@ addLayer("He", {
                                                                 canAfford() { return player.C.Cpower.gte(this.cost())},
                                                                 buy() {
                                                                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
-                                                                   player.C.Cpower = player.C.Cpower.sub(cost)
+                                                                   player[this.layer].Cpower = player[this.layer].Cpower.sub(tmp[this.layer].buyables[this.id].cost)
                                                                 },
                                                                 display() {return `指数加成木炭能量助推器的效果。\n持有木炭能量增强器数量： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}木炭能量\n效果：木炭能量助推器效果^${format(this.effect())}`},
                                                                 effect(x) { 
-                                                                  eff = new Decimal(x).mul(0.1).add(1)
+                                                                  if (getBuyableAmount("C",23)<4) eff = new Decimal(x).mul(0.5).add(1)
+                                                                  if (getBuyableAmount("C",23)>3) eff = new Decimal(x).mul(0.1).add(2.5)
                                                                   return new Decimal(eff)}
                                                               },
                                                         },
@@ -1031,7 +1051,7 @@ addLayer("He", {
                                                                 requirementDescription: "大型木炭罐子(2级别)",
                                                                 effectDescription: "双倍碳获取。",
                                                                 done() {
-                                                                    return player.C.Rank.gte(2)
+                                                                    return tmp.C.Rank.gte(2)
                                                                  
                                                                 }
                                                             },
@@ -1039,7 +1059,7 @@ addLayer("He", {
                                                                 requirementDescription: "木炭桶(3级别)",
                                                                 effectDescription: "再次双倍碳获取。",
                                                                 done() {
-                                                                    return player.C.Rank.gte(3)
+                                                                    return tmp.C.Rank.gte(3)
                                                                  
                                                                 }
                                                             },
@@ -1047,7 +1067,7 @@ addLayer("He", {
                                                                     requirementDescription: "小木炭堆(5级别)",
                                                                     effectDescription: "解锁阶层。",
                                                                     done() {
-                                                                        return player.C.Rank.gte(5)
+                                                                        return tmp.C.Rank.gte(5)
                                                                      
                                                                     }
                                                             },
@@ -1055,12 +1075,29 @@ addLayer("He", {
                                                                 requirementDescription: "木炭堆(1阶层)",
                                                                 effectDescription: "木炭能量获取^1.15。",
                                                                 done() {
-                                                                    return player.C.Tier.gte(1)
+                                                                    return tmp.C.Tier.gte(1)
                                                                  
                                                                 }
+
                                                         },
                                                          
+                                                        8: {
+                                                            requirementDescription: "大木炭堆(8级别)",
+                                                            effectDescription: "碳和木炭能量获取*10",
+                                                            done() {
+                                                                return tmp.C.Rank.gte(8)
+                                                             
+                                                            }
                                                         },
+                                                        9: {
+                                                            requirementDescription: "特大型木炭堆(2阶层))",
+                                                            effectDescription: "碳和木炭能量获取*10，氢获取*1e6",
+                                                            done() {
+                                                                return tmp.C.Tier.gte(2)
+                                                             
+                                                            }
+                                                        },
+                                                    },
                                                         bars: {
                                                             NextCD: {
                                                                 direction: RIGHT,
@@ -1119,6 +1156,12 @@ addLayer("He", {
             ["display-text",
             function() {return '你有 ' + format(player.C.points) + ' 碳，增幅氢获取 '+format(tmp.C.effect)+'x'},
                 {}],
+                ["display-text",
+                function() {return '*警告* 当级别超过10后，级别的成本膨胀将会加速！'},
+                    {}],
+                ["display-text",
+                function() {return '*警告* 当木炭能量增强器超过4后，其效果将受到软上限限制！'},
+                    {}],
         "upgrades",
         "buyables",
        
@@ -1244,7 +1287,7 @@ addLayer("He", {
                                                         },
                                                         },
 
-                                                    })))
+                                                    },
                                                     addLayer("N", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
                                                             unlocked: true,                     // You can add more variables here to add them to your layer.
@@ -1254,7 +1297,8 @@ addLayer("He", {
                                                         color: "#FBB9DF",                       // The color for this layer, which affects many elements.
                                                         resource: "氮",    
                                                         symbol:"N",        // The name of this layer's main prestige resource.
-                                                        row: 3,                                 // The row this layer is on (0 is the first row).
+                                                        row: 3,   
+                                                        position: 1,                              // The row this layer is on (0 is the first row).
                                                     
                                                         baseResource: "氢",                 // The name of the resource your prestige gain is based on.
                                                         baseAmount() { return player.H.points },  // A function to return the current amount of baseResource.
@@ -1262,8 +1306,8 @@ addLayer("He", {
                                                         requires: new Decimal(1e50),              // The amount of the base needed to  gain 1 of the prestige currency.
                                                                                                 // Also the amount required to unlock the layer.
                                                     
-                                                        type: "normal",                         // Determines the formula used for calculating prestige currency.
-                                                        exponent: 0.5,                          // "normal" prestige gain is (currency^exponent).
+                                                        type: "static",                         // Determines the formula used for calculating prestige currency.
+                                                        exponent: 2,                          // "normal" prestige gain is (currency^exponent).
                                                     
                                                         gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
                                                             return new Decimal(1)               // Factor in any bonuses multiplying gain here.
@@ -1273,8 +1317,42 @@ addLayer("He", {
                                                         },
                                                         
                                                         layerShown() { return player.C.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
-                                                    
+                                                        Effect(){return new Decimal(3).pow(player.N.points).add(1)},
+
                                                         upgrades: {
+                                                            11: {
+                                                                title: "氮原子(N)",
+                                                                description: "级别提升木炭能量获取",
+                                                                cost: new Decimal(2),
+                                                                effect(){return new Decimal((tmp.C.Rank).pow(0.4))},
+                                                                effectDisplay(){return `*${format(this.effect())}`},
+                                                                unlocked(){return hasMilestone("N",1)}
+                                                                },
+                                                                12: {
+                                                                    title: "氮离子(N3-)",
+                                                                    description: "木炭能量增幅碳获取的公式更好",
+                                                                    cost: new Decimal(3),
+                                                                    effect(){let eff = new Decimal(1.2)
+                                                                         return eff},
+                                                                    effectDisplay(){return `*${format(this.effect())}`},
+                                                                    unlocked(){return hasMilestone("N",1)}
+                                                                    },
+                                                                13: {
+                                                                        title: "氮气(N₂)",
+                                                                        description: "略微提升之前所有层级资源的效果。",
+                                                                        cost: new Decimal(4),
+                                                                        effect(){return new Decimal(1.001)},
+                                                                        effectDisplay(){return `^${format(this.effect())}`},
+                                                                        unlocked(){return hasMilestone("N",1)}
+                                                                        },
+                                                                        14: {
+                                                                            title: "氨气(NH₃)",
+                                                                            description: "丁硼烷以降低的速度提升全部硼烷获取。",
+                                                                            cost: new Decimal(6),
+                                                                            effect(){return (player.B.Dpower).pow(0.1)},
+                                                                            effectDisplay(){return `*${format(this.effect())}`},
+                                                                            unlocked(){return hasMilestone("N",1)}
+                                                                            },
                                                             // Look in the upgrades docs to see what goes here!
                                                         },
                                                        
@@ -1299,6 +1377,39 @@ addLayer("He", {
                                                                     
                                                             },
                                                         },
+                                                        milestones: {
+                                                            0: {
+                                                                requirementDescription: "氮气集气瓶(1氮)",
+                                                                effectDescription: "在重置后保留所有之前层级的内容",
+                                                                done() {
+                                                                    return player.N.points.gte(1)
+                                                                }
+                                                            },
+                                                            1: {
+                                                                requirementDescription: "小氮气罐(2氮)",
+                                                                effectDescription: "解锁8个氮升级",
+                                                                done() {
+                                                                    return player.N.points.gte(2)
+                                                                 
+                                                                }
+                                                            },
+                                                            2: {
+                                                                requirementDescription: "氮气罐(3氮)",
+                                                                effectDescription: "解锁丁硼烷效果",
+                                                                done() {
+                                                                    return player.N.points.gte(3)
+                                                                }
+                                                            },
+                                                            3: {
+                                                                requirementDescription: "大氮气罐(20氮)",
+                                                                effectDescription: "解锁氮气加速。",
+                                                                done() {
+                                                                    return player.N.points.gte(20)
+                                                                 
+                                                                }
+                                                            },
+                                                           
+                                                    },
                                                         bars: {
                                                             NextCD: {
                                                                 direction: RIGHT,
@@ -1325,14 +1436,115 @@ addLayer("He", {
                                                             "Main":{
                                                                 content:[ "main-display",
                                                                 "prestige-button",
+                                                                ["display-text",
+                                                                function() {return '你有 ' + format(player.N.points) + '氮，加成氢获取 '+format(tmp.N.Effect)+'x'},
+                                                                    {}],
                                                             ["bar", "NextCD"],
                                                             ["infobox","introBox"],
-                                                        
+                                                        "grid",
+
             "blank",
+            "upgrades",
             "milestones",
            
             "blank",
             , "blank", "blank", ]
+                                                    },
+                                                        },
+
+                                                    }))))
+                                                    addLayer("O", {
+                                                        startData() { return {                  // startData is a function that returns default data for a layer. 
+                                                            unlocked: true,                     // You can add more variables here to add them to your layer.
+                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                        }},
+                                                    
+                                                        color: "#0000FF",                       // The color for this layer, which affects many elements.
+                                                        resource: "氧",            // The name of this layer's main prestige resource.
+                                                        row: 3,  
+                                                        position: 10,                               // The row this layer is on (0 is the first row).
+                                                    
+                                                        baseResource: "氢",                 // The name of the resource your prestige gain is based on.
+                                                        baseAmount() { return player.H.points },  // A function to return the current amount of baseResource.
+                                                    
+                                                        requires: new Decimal(1e100),              // The amount of the base needed to  gain 1 of the prestige currency.
+                                                                                                // Also the amount required to unlock the layer.
+                                                    
+                                                        type: "normal",                         // Determines the formula used for calculating prestige currency.
+                                                        exponent: 0.1,                          // "normal" prestige gain is (currency^exponent).
+                                                    
+                                                        gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
+                                                            return new Decimal(1)               // Factor in any bonuses multiplying gain here.
+                                                        },
+                                                        gainExp() {                             // Returns the exponent to your gain of the prestige resource.
+                                                            return new Decimal(1)
+                                                        },
+                                                    
+                                                        layerShown() { return player.N.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
+                                                    
+                                                        upgrades: {
+                                                            // Look in the upgrades docs to see what goes here!
+                                                        },
+                                                        resetsNothing(){return true},
+                                                        infoboxes: {
+                                                            introBox: {
+                                                                    title: "8号元素-氧",
+                                                                    body(){
+                                                                            let a = "你已经收集了1e100个氢原子，足够聚变生成一个氧原子了！"
+                                                                            let b = "聚变氧原子不会消耗任何更低层级的资源。"
+                                                                            let c = "氧（Oxygen）是一种化学元素，其原子序数为8，相对原子质量为15.9994。"
+                                                                            let d = "在元素周期表中，氧是氧族元素的一员，它也是一个高反应性的第二周期非金属元素，很容易与几乎所有其他元素形成化合物（主要为氧化物）。"
+                                                                            let e = "两个氧原子结合形成氧气，是一种无色无臭无味的双原子气体，化学式为O2。。 "
+                                                                            e += "如果按质量计算，氧在宇宙中的含量仅次于氢和氦，在地壳中，氧则是含量最丰富的元素。氧不仅占了水质量的89%，也占了空气体积的20.9%。 "
+                                                                            let f = "构成有机体的所有主要化合物都含有氧，包括蛋白质、碳水化合物和脂肪。"
+                                                                            let g = "构成动物壳、牙齿及骨骼的主要无机化合物也含有氧。" 
+                                                                            let h = "氧的同位素已知的有十七种，包括氧-12至氧-28，其中氧-16、氧-17和氧-18三种属于稳定型，其他已知的同位素都带有放射性，其半衰期全部均少于三分钟。"
+                                                                            let i = "试着通过重置将全部基本粒子、1-6号元素原子聚合成氧原子吧！"
+                                                    
+                                                                            return a + b + c + " " + d + e + f + g + h + i
+                                                                    },
+                                                                    
                                                             },
-                                                        }
+                                                        },
+                                                        bars: {
+                                                            NextCD: {
+                                                                direction: RIGHT,
+                                                                width: 700,
+                                                                height: 30,
+                                                                fillStyle: {'background-color' : "#FFF68F"},
+                                                                req() {
+                                                                    let req =new Decimal(1e200)
+                                                                    return req
+                                                                },
+                                                                display() {
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let r = "到达" + format(this.req()) + " 氢以解锁下一种元素. (" + format(f.log10().div(this.req().log10()).mul(100).min(100)) + "%)"
+                                                                    return r
+                                                                },
+                                                                progress() { 
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let p = f.log10().div(this.req().log10())
+                                                                    return p
+                                                                },
+                                                            },
+                                                        },
+                                                        tabFormat:{
+                                                            "Main":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                                ["display-text",
+                                                                function() {return '你有 ' + format(player.O.points) + '氧，效果正在咕咕中'},
+                                                                    {}],
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    },
+                                                        },
                                                     })

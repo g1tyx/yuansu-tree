@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Beta v6.0",
-	name: "哇！挖到钻石了！",
+	num: "Beta v7.0",
+	name: "氮气加速！",
 }
 
 let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
@@ -28,7 +28,12 @@ let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
 		- 加入硼层级并加入升级、里程碑。对铍层级增加4个里程碑。<br>
 		<h3>Beta v6.0“哇！挖到钻石了！”</h3><br>
 		- 加入碳层级并加入可购买、很多里程碑。<br>
-		- 对每个层级加入了进度条用来显示距离下一层的进度。<br>`
+		- 对每个层级加入了进度条用来显示距离下一层的进度。<br>
+		<h3>Beta v7.0“氮气加速！”</h3><br>
+		- 加入氮层级并加入升级、里程碑。<br>
+		- 对碳层级加入更多的层级和阶层效果、软上限。<br>
+		- 修复了锂层级进度条显示的bug。<br>
+		- 修复了碳可购买“木炭能量增强器”效果为乘算而非指数的bug。<br>`
 
 let winText = `恭喜你！你已经到达了Beta v6.0的结局！等待碳层级加入更多内容吧！`
 
@@ -69,7 +74,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.N.points.gte(new Decimal("1"))
+	return player.O.points.gte(new Decimal("1"))
 }
 
 
@@ -91,5 +96,5 @@ function maxTickLength() {
 function fixOldSave(oldVersion){
 }
 var displayThings = [
-	"当前残局:1氮",
+	"当前残局:1氧",
 ]
