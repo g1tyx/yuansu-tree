@@ -77,6 +77,8 @@
         if(player.C.unlocked) mult = mult.mul(format(tmp.C.effect))
         if(player.N.unlocked) mult = mult.mul(format(tmp.N.Effect))
         if(hasMilestone("C",9)) mult = mult.mul(1e6)
+        if(player.O.unlocked) mult = mult.mul(format(player.O.OpowerEff2))
+        if(hasMilestone("C",11)) mult = mult.mul(1e20)
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -159,7 +161,7 @@ addLayer("He", {
         color: "#E0FFFF",
         requires: new Decimal(200), // Can be a function that takes requirement increases into account
         resource: "氦", // Name of prestige currency
-        baseResource: "points", // Name of resource prestige is based on
+        baseResource: "基本粒子", // Name of resource prestige is based on
         baseAmount() {return player.points}, // Get the current amount of baseResource
         type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
         exponent: 0.7, // Prestige currency exponent
@@ -839,7 +841,8 @@ addLayer("He", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
                                                             unlocked: false,                     // You can add more variables here to add them to your layer.
                                                             points: new Decimal(0),  
-                                                            Cpower: new Decimal(0) ,
+                                                            Cpower: new Decimal(0),
+                                                            Cpower2: new Decimal(0),
                                                             Cdim1:new Decimal(0),
                                                             Cdim1effect:new Decimal(0),
                                                             FreeCdim1:new Decimal(0),
@@ -854,7 +857,10 @@ addLayer("He", {
                                                         }},
                                                         update(diff) {
                                                             if (hasMilestone("C",2)) player.C.Cpower = player.C.Cpower.add(((buyableEffect("C",21)).add(1)).times(diff))
-                                                        
+                                                            if (hasUpgrade("C",11)) buyBuyable("C",21)
+                                                            if (hasUpgrade("C",11)) buyBuyable("C",22)
+                                                            if (hasUpgrade("C",11)) buyBuyable("C",23)
+                                                            if (hasUpgrade("C",15)) buyBuyable("C",11)
                                                        
                                                         
                                                         },
@@ -889,7 +895,9 @@ addLayer("He", {
                                                             if(hasMilestone("C",4)) mult = mult.mul(2)   
                                                             if(hasMilestone("C",5)) mult = mult.mul(2)  
                                                             if (hasMilestone("C",8)) mult = mult.mul(10)
-                                                            if (hasMilestone("C",9)) mult = mult.mul(10)                     // Returns your multiplier to your gain of the prestige resource.
+                                                            if (hasMilestone("C",9)) mult = mult.mul(10)  
+                                                            if (hasMilestone("C",11)) mult = mult.mul(10) 
+                                                            mult = mult.mul(tmp.C.buyables[41].effect)                   // Returns your multiplier to your gain of the prestige resource.
                                                             return mult     
                                                                  // Factor in any bonuses multiplying gain here.
                                                         },
@@ -900,6 +908,99 @@ addLayer("He", {
                                                         layerShown() { return player.B.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
                                                     
                                                         upgrades: {
+                                                            11: {
+                                                                title: "石墨(C)",
+                                                                description: "自动购买木炭能量发生器、助推器和增强器。",
+                                                                cost: new Decimal(1),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(1)
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){
+                                                                return "在上面写着了！"
+                                                                },
+                                                                unlocked(){
+                                                                    return true
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
+                                                            12: {
+                                                                title: "甲烷(CH₄)",
+                                                                description: "木炭能量助推器提供免费木炭能量发生器。",
+                                                                cost: new Decimal(10),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(0)
+                                                                s13 = s13.add(getBuyableAmount("C",22))
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){return `+${format(this.effect())}`},
+                                                                unlocked(){
+                                                                    return true
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
+                                                            13: {
+                                                                title: "乙烷(C₂H₆)",
+                                                                description: "木炭能量增强器提供免费木炭能量助推器。",
+                                                                cost: new Decimal(25),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(0)
+                                                                s13 = s13.add(getBuyableAmount("C",23))
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){return `+${format(this.effect())}`},
+                                                                unlocked(){
+                                                                    return true
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
+                                                            14: {
+                                                                title: "丙烷(C₃H₈)",
+                                                                description: "级别不再重置任何东西。",
+                                                                cost: new Decimal(50),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(1)
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){
+                                                                return "在上面写着了！"
+                                                                },
+                                                                unlocked(){
+                                                                    return true
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
+                                                            15: {
+                                                                title: "丁烷(C₄H₁₀)",
+                                                                description: "你可以自动提升级别。",
+                                                                cost: new Decimal(10000),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(1)
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){
+                                                                return "在上面写着了！"
+                                                                },
+                                                                unlocked(){
+                                                                    return true
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
                                                             // Look in the upgrades docs to see what goes here!
                                                         },
                                                         resetsNothing() { return true},
@@ -934,12 +1035,13 @@ addLayer("He", {
                                                                 canAfford() { return player.C.Cpower.gte(this.cost())},
                                                                 buy() {
                                                                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
-                                                                   setBuyableAmount(this.layer, 21,new Decimal(0))
-                                                                   setBuyableAmount(this.layer, 22,new Decimal(0))
-                                                                   setBuyableAmount(this.layer, 23,new Decimal(0))
-                                                                   player.C.Cpower = new Decimal(0)
+                                                                   if(!hasUpgrade("C",14)) setBuyableAmount(this.layer, 21,new Decimal(0))
+                                                                   if(!hasUpgrade("C",14)) setBuyableAmount(this.layer, 22,new Decimal(0))
+                                                                   if(!hasUpgrade("C",14)) setBuyableAmount(this.layer, 23,new Decimal(0))
+                                                                   player.C.Cpower = new Decimal(10)
                                                                    
                                                                 },
+                                                                autoed(){return hasUpgrade("C",15)},
                                                                 display() {return `重置木炭能量，但提升级别。\n当前层级： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}木炭能量\n效果：级别1：解锁木炭能量发生器。<br>级别2：解锁木炭能量助推器，双倍碳获取。<br>级别3：解锁木炭能量增强器，双倍碳获取。<br>级别8：木炭能量和碳获取*10。`},
                                                                 effect(x) { 
                                                                   eff = new Decimal(x)
@@ -957,9 +1059,9 @@ addLayer("He", {
                                                                    setBuyableAmount(this.layer, 21,new Decimal(0))
                                                                    setBuyableAmount(this.layer, 22,new Decimal(0))
                                                                    setBuyableAmount(this.layer, 23,new Decimal(0))
-                                                                   player.C.Cpower = new Decimal(0)
+                                                                   player.C.Cpower = new Decimal(10)
                                                                 },
-                                                                display() {return `重置级别，但提升阶层。\n当前阶层： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}层级\n效果：阶层1：木炭能量获取^1.15。<br>阶层2：木炭能量和碳获取*10，氢获取*1e6。`},
+                                                                display() {return `重置级别，但提升阶层。\n当前阶层： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}层级\n效果：阶层1：木炭能量获取^1.15。<br>阶层2：木炭能量和碳获取*10，氢获取*1e6。<br>阶层3：碳和木炭能量获取*10，氢获取*1e20`},
                                                                 effect(x) { 
                                                                   eff = new Decimal(x)
                                                                   return new Decimal(eff)}
@@ -969,18 +1071,23 @@ addLayer("He", {
                                                               title: "木炭能量发生器",
                                                               cost(x) {return new Decimal(10).mul(new Decimal(1.5).pow(x))},
                                                               canAfford() { return player.C.Cpower.gte(this.cost())},
+                                                              autoed(){return hasUpgrade("C",11)},
                                                               buy() {
                                                                  setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
-                                                                 player[this.layer].Cpower = player[this.layer].Cpower.sub(tmp[this.layer].buyables[this.id].cost)
+                                                                 if(!hasUpgrade("C",11))player[this.layer].Cpower = player[this.layer].Cpower.sub(tmp[this.layer].buyables[this.id].cost)
                                                               },
                                                               display() {return `生产木炭能量。\n持有木炭能量发生器数量： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}木炭能量\n效果：每秒生产*${format(this.effect())}木炭能量`},
                                                               effect(x) { 
-                                                                eff = new Decimal(x)
+                                                                if (!hasUpgrade("C",12)) eff = new Decimal(x)
+                                                                if (hasUpgrade("C",12)) eff = new Decimal(x.add(getBuyableAmount("C",22)))
                                                                 eff = eff.mul(tmp.C.buyables[22].effect)
                                                                 if (hasUpgrade("N",11)) eff = eff.mul(upgradeEffect("N",11))
                                                                 if (hasMilestone("C",8)) eff = eff.mul(10)
                                                                 if (hasMilestone("C",9)) eff = eff.mul(10)
+                                                                if (hasMilestone("C",11)) eff = eff.mul(10)
                                                                 if (hasMilestone("C",7)) eff = eff.pow(1.15)
+                                                                if (player.O.unlocked) eff = eff.mul(tmp.O.buyables[12].effect)
+                                                                eff = eff.mul(tmp.C.buyables[41].effect)       
                                                                 
                                                                 return eff
                                                             },
@@ -990,13 +1097,15 @@ addLayer("He", {
                                                                 unlocked(){return layers.C.Rank().gte(2)},
                                                                 cost(x) {return new Decimal(100).mul(new Decimal(4).pow(x))},
                                                                 canAfford() { return player.C.Cpower.gte(this.cost())},
+                                                                autoed(){return hasUpgrade("C",11)},
                                                                 buy() {
                                                                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
-                                                                   player[this.layer].Cpower = player[this.layer].Cpower.sub(tmp[this.layer].buyables[this.id].cost)
+                                                                   if(!hasUpgrade("C",11))player[this.layer].Cpower = player[this.layer].Cpower.sub(tmp[this.layer].buyables[this.id].cost)
                                                                 },
                                                                 display() {return `倍增木炭能量发生器的效果。\n持有木炭能量助推器数量： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}木炭能量\n效果：木炭能量发生器效果*${format(this.effect())}`},
                                                                 effect(x) { 
-                                                                  eff = new Decimal(x).mul(2).add(1)
+                                                                if (!hasUpgrade("C",13)) eff = new Decimal(x).mul(2).add(1)
+                                                                if (hasUpgrade("C",13)) eff = new Decimal(x.add(getBuyableAmount("C",23))).mul(2).add(1)
                                                                   eff = eff.pow(tmp.C.buyables[23].effect)
                                                                   return new Decimal(eff)}
                                                               },
@@ -1005,15 +1114,60 @@ addLayer("He", {
                                                                 unlocked(){return layers.C.Rank().gte(3)},
                                                                 cost(x) {return new Decimal(1000).mul(new Decimal(9).pow(x))},
                                                                 canAfford() { return player.C.Cpower.gte(this.cost())},
+                                                                autoed(){return hasUpgrade("C",11)},
                                                                 buy() {
                                                                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
-                                                                   player[this.layer].Cpower = player[this.layer].Cpower.sub(tmp[this.layer].buyables[this.id].cost)
+                                                                   if(!hasUpgrade("C",11))player[this.layer].Cpower = player[this.layer].Cpower.sub(tmp[this.layer].buyables[this.id].cost)
                                                                 },
                                                                 display() {return `指数加成木炭能量助推器的效果。\n持有木炭能量增强器数量： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}木炭能量\n效果：木炭能量助推器效果^${format(this.effect())}`},
                                                                 effect(x) { 
                                                                   if (getBuyableAmount("C",23)<4) eff = new Decimal(x).mul(0.5).add(1)
-                                                                  if (getBuyableAmount("C",23)>3) eff = new Decimal(x).mul(0.1).add(2.5)
+                                                                  if (getBuyableAmount("C",23)>3) eff = new Decimal(x).mul(0.1).mul((player.O.OpowerEff).div(10).add(1)).add(2.5)
                                                                   return new Decimal(eff)}
+                                                              },
+                                                              31: {
+                                                                title: "石墨能量",
+                                                                gain() { return player.C.Cpower.div(1e16).pow(0.6)},
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("重置你的级别、阶层、木炭发生器倍增器增强器等级和木炭能量，获得"+formatWhole(tmp[this.layer].buyables[this.id].gain)+"石墨能量\n"+
+                                                                    "需要: 1e16木炭能量\n")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return layers.C.Rank().gte(11) }, 
+                                                                canAfford() { return player.C.Cpower.gte(1e16) },
+                                                                buy() { 
+                                                                     setBuyableAmount(this.layer,11,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,12,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,21,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,22,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,23,new Decimal(0))
+                                                                     player.C.Cpower2 = player.C.Cpower2.add(tmp[this.layer].buyables[this.id].gain)
+                                                                     player.C.Cpower = new Decimal(0)
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                                autoed() { return false},
+                                                            },
+                                                            41: {
+                                                                title: "时间速度",
+                                                                unlocked(){return hasMilestone("C",10)},
+                                                                cost(x) {return new Decimal(3).pow(x)},
+                                                                canAfford() { return player.C.Cpower.gte(this.cost())},
+                                                                autoed(){return false},
+                                                                buy() {
+                                                                   setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                                   player[this.layer].Cpower2 = player[this.layer].Cpower2.sub(tmp[this.layer].buyables[this.id].cost)
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                                display() {return `提升所有石墨能量之前资源的获取速度。\n持有时间加速数量： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}石墨能量\n效果：时间速度*${format(this.effect())}`},
+                                                                effect(x) { let eff = new Decimal(1)
+                                                                  eff = eff.mul(new Decimal(1.5).pow(x))
+                                                                  return eff
+                                                                }
                                                               },
                                                         },
                                                         milestones: {
@@ -1090,10 +1244,26 @@ addLayer("He", {
                                                             }
                                                         },
                                                         9: {
-                                                            requirementDescription: "特大型木炭堆(2阶层))",
+                                                            requirementDescription: "特大型木炭堆(2阶层)",
                                                             effectDescription: "碳和木炭能量获取*10，氢获取*1e6",
                                                             done() {
                                                                 return tmp.C.Tier.gte(2)
+                                                             
+                                                            }
+                                                        },
+                                                        10: {
+                                                            requirementDescription: "石墨粉(1石墨能量)",
+                                                            effectDescription: "里程碑的基础木炭能量获取提升20倍",
+                                                            done() {
+                                                                return tmp.C.Tier.gte(2)
+                                                             
+                                                            }
+                                                        },
+                                                        11: {
+                                                            requirementDescription: "石墨粒(3阶层)",
+                                                            effectDescription: "碳和木炭能量获取*10，氢获取*1e20",
+                                                            done() {
+                                                                return tmp.C.Tier.gte(3)
                                                              
                                                             }
                                                         },
@@ -1162,7 +1332,10 @@ addLayer("He", {
                 ["display-text",
                 function() {return '*警告* 当木炭能量增强器超过4后，其效果将受到软上限限制！'},
                     {}],
-        "upgrades",
+                ["display-text",
+                function() {return '*警告* 当木炭能量增强器超过8后，其效果将受到二重软上限限制！'},
+                    {}],
+        
         "buyables",
        
         "blank",
@@ -1172,18 +1345,26 @@ addLayer("He", {
                                                             buttonStyle: {"border-color": "#FF0000"},
                                                             content:["infobox",
                                                         "main-display",
-        
-                                                    "prestige-button",
+                                                        ["display-text",
+        function() {return "你有 <h2 style='color:#FF0000;text-shadow:0px 0px 10px;'>"+ format(player.C.Cpower2) + "</h2> 石墨能量"},
+            {}],
+
+                                                        
+                                                    
         
         "blank",
         , "blank", "blank", ]
                                                         },
                                                         "Graphite-Upgrades":{
+                                                            
                                                             buttonStyle: {"border-color": "#FF0000"},
                                                             content:["infobox",
                                                         "main-display",
-        
-                                                    "prestige-button",
+                                                        ["display-text",
+                                                            function() {return "你有 <h2 style='color:#FF0000;text-shadow:0px 0px 10px;'>"+ format(player.C.Cpower2) + "</h2> 石墨能量"},
+                                                                {}],
+        "upgrades",
+                                                   
         
         "blank",
         , "blank", "blank", ]
@@ -1317,7 +1498,7 @@ addLayer("He", {
                                                         },
                                                         
                                                         layerShown() { return player.C.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
-                                                        Effect(){return new Decimal(3).pow(player.N.points).add(1)},
+                                                        Effect(){return new Decimal(3).pow(player.N.points)},
 
                                                         upgrades: {
                                                             11: {
@@ -1455,10 +1636,15 @@ addLayer("He", {
                                                     }))))
                                                     addLayer("O", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
-                                                            unlocked: true,                     // You can add more variables here to add them to your layer.
-                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                            unlocked: false,                     // You can add more variables here to add them to your layer.
+                                                            points: new Decimal(0), 
+                                                            Opower: new Decimal(0), 
+                                                            Opowergain: new Decimal(0),
+                                                            effect: new Decimal(0),
+                                                            effect2: new Decimal(0),
+                                                            OpowerEff: new Decimal(0),
+                                                            OpowerEff2: new Decimal(0),        // "points" is the internal name for the main resource of the layer.
                                                         }},
-                                                    
                                                         color: "#0000FF",                       // The color for this layer, which affects many elements.
                                                         resource: "氧",            // The name of this layer's main prestige resource.
                                                         row: 3,  
@@ -1471,10 +1657,94 @@ addLayer("He", {
                                                                                                 // Also the amount required to unlock the layer.
                                                     
                                                         type: "normal",                         // Determines the formula used for calculating prestige currency.
-                                                        exponent: 0.1,                          // "normal" prestige gain is (currency^exponent).
-                                                    
-                                                        gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
-                                                            return new Decimal(1)               // Factor in any bonuses multiplying gain here.
+                                                        exponent: 0.001,                          // "normal" prestige gain is (currency^exponent).
+                                                        effect() { 
+                                                            let sol = player.O.points;
+                                                            let eff = sol.plus(1);
+                                                            player.O.effect = eff
+                                                            return eff;
+                                                        },
+                                                        effect2() { player.O.effect2 = player.O.points.div(1e5).plus(1).sqrt()
+                                                            return player.O.points.div(1e20).plus(1).sqrt()},
+                                                            buyables: {
+                                                                rows: 3,
+                                                                cols: 3,
+                                                                11: {
+                                                                    title: "臭氧(O₃)",
+                                                                    gain() { return player.O.points.div(2).root(1.5) },
+                                                                    effect() { 
+                                                                        let amt = player[this.layer].buyables[this.id]
+                                                                        amt = amt.add(1).log10()  
+                                                                    return amt
+                                                                    },
+                                                                    display() { // Everything else displayed in the buyable button after the title
+                                                                        let data = tmp[this.layer].buyables[this.id]
+                                                                        let x = player[this.layer].buyables[this.id].gte(5e4)?"10^(sqrt(log(x)*log(5e4)))":"x"
+                                                                        let display = ("献祭你所有的氧，获得 "+formatWhole(tmp[this.layer].buyables[this.id].gain)+" 臭氧\n"+
+                                                                        "需要: 100 氧\n"+
+                                                                        "数量: " + formatWhole(player[this.layer].buyables[this.id]))+"\n"+
+                                                                        ("效果: 加成氧获取 "+format(tmp[this.layer].buyables[this.id].effect) + 'x')
+                                                                        return display;
+                                                                    },
+                                                                    unlocked() { return player[this.layer].unlocked }, 
+                                                                    canAfford() { return player.O.points.gte(100) },
+                                                                    buy() { 
+                                                                        player.O.points = new Decimal(0);
+                                                                        player.O.buyables[this.id] = player.O.buyables[this.id].add(tmp[this.layer].buyables[this.id].gain);
+                                                                    },
+                                                                    buyMax() {
+                                                                        // I'll do this later ehehe
+                                                                    },
+                                                                    style: {'height':'140px', 'width':'140px'},
+                                                                    autoed() { return false },
+                                                                },
+                                                                12: {
+                                                                    title: "氧化氢(H₂O)",
+                                                                    gain() { return player.H.points.div(1e140).cbrt().times(player.O.Opower.div(2500)).root(3.5)},
+                                                                    effect() { return Decimal.pow(10, player[this.layer].buyables[this.id].plus(1).log10().cbrt())},
+                                                                    display() { // Everything else displayed in the buyable button after the title
+                                                                        let data = tmp[this.layer].buyables[this.id]
+                                                                        let display = ("献祭你所有的氢和氧气，获得 "+formatWhole(tmp[this.layer].buyables[this.id].gain)+" 氧化氢\n"+
+                                                                        "需要: 2500氧气、1e140氢\n"+
+                                                                        "数量: " + formatWhole(player[this.layer].buyables[this.id])+"\n"+
+                                                                        ("效果: 加成木炭能量与氢获取 "+format(tmp[this.layer].buyables[this.id].effect) + 'x'))
+                                                                        return display;
+                                                                    },
+                                                                    unlocked() { return player[this.layer].unlocked }, 
+                                                                    canAfford() { return player.H.points.gte(1e140)&&player.O.Opower.gte(2500) },
+                                                                    buy() { 
+                                                                        player.H.points = new Decimal(0);
+                                                                        player.O.Opower = new Decimal(0);
+                                                                        player.O.buyables[this.id] = player.O.buyables[this.id].plus(tmp[this.layer].buyables[this.id].gain);
+                                                                    },
+                                                                    buyMax() {
+                                                                        // I'll do this later ehehe
+                                                                    },
+                                                                    style: {'height':'140px', 'width':'140px', 'font-size':'9px'},
+                                                                    autoed() { return false},
+                                                                },
+                                                            },
+                                                        OpowerEff() { 
+                                                            let eff = Decimal.sub(4, Decimal.div(4, player.O.Opower.plus(1).log10().plus(1))) 
+                                                            player.O.OpowerEff = eff
+                                                            return eff
+                                                        },
+                                                        solEnEff2() {let eff2 = player.O.Opower.plus(1).pow(2)
+                                                        player.O.OpowerEff2 = eff2
+                                                        return eff2 },
+                                                        Opowergain() { 
+                                                            
+                                                            let gain = new Decimal(2).times(player.O.effect).pow(player.O.effect2).sub(1);
+                                                            player.O.Opowergain = gain
+                                                            return gain;
+                                                        },
+                                                        update(diff) {
+                                                            player.O.Opower = player.O.Opower.plus(player.O.Opowergain.times(diff))
+                                                        },
+                                                        gainMult() {            
+                                                            let mult = new Decimal(1)
+                                                            mult = mult.mul(((player.N.points).sub(14)).pow(2))                // Returns your multiplier to your gain of the prestige resource.
+                                                            return mult              // Factor in any bonuses multiplying gain here.
                                                         },
                                                         gainExp() {                             // Returns the exponent to your gain of the prestige resource.
                                                             return new Decimal(1)
@@ -1533,7 +1803,16 @@ addLayer("He", {
                                                                 content:[ "main-display",
                                                                 "prestige-button",
                                                                 ["display-text",
-                                                                function() {return '你有 ' + format(player.O.points) + '氧，效果正在咕咕中'},
+                                                                function() {return '你有 ' + format(player.O.points) + '氧，正在每秒生产氧气'},
+                                                                    {}],
+                                                                    ["display-text",
+                                                                function() {return '你有 ' + format(player.O.Opower) + '氧气(O₂)'},
+                                                                    {}],
+                                                                    ["display-text",
+                                                                function() {return '你的氧气使木炭能量增强器软上限削弱' + format(player.O.OpowerEff) + '%'},
+                                                                    {}],
+                                                                    ["display-text",
+                                                                function() {return '同时也使氢获取倍增' + format(player.O.OpowerEff2) + 'x'},
                                                                     {}],
                                                             ["bar", "NextCD"],
                                                             ["infobox","introBox"],
@@ -1542,6 +1821,99 @@ addLayer("He", {
             "blank",
             "upgrades",
             "milestones",
+            "buyables",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    },
+                                                        },
+                                                    })
+                                                    addLayer("F", {
+                                                        startData() { return {                  // startData is a function that returns default data for a layer. 
+                                                            unlocked: false,                     // You can add more variables here to add them to your layer.
+                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                        }},
+                                                        symbol:"F",
+                                                        color: "#FFF68F",                       // The color for this layer, which affects many elements.
+                                                        resource: "氟",            // The name of this layer's main prestige resource.
+                                                        row: 3,
+                                                        position: 13,                                 // The row this layer is on (0 is the first row).
+                                                    
+                                                        baseResource: "氢",                 // The name of the resource your prestige gain is based on.
+                                                        baseAmount() { return player.H.points },  // A function to return the current amount of baseResource.
+                                                    
+                                                        requires: new Decimal(1e200),              // The amount of the base needed to  gain 1 of the prestige currency.
+                                                                                                // Also the amount required to unlock the layer.
+                                                    
+                                                        type: "normal",                         // Determines the formula used for calculating prestige currency.
+                                                        exponent: 0.001,                          // "normal" prestige gain is (currency^exponent).
+                                                    
+                                                        gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
+                                                            return new Decimal(1)               // Factor in any bonuses multiplying gain here.
+                                                        },
+                                                        gainExp() {                             // Returns the exponent to your gain of the prestige resource.
+                                                            return new Decimal(1)
+                                                        },
+                                                        bars: {
+                                                            NextCD: {
+                                                                direction: RIGHT,
+                                                                width: 700,
+                                                                height: 30,
+                                                                fillStyle: {'background-color' : "#800080"},
+                                                                req() {
+                                                                    let req =new Decimal(1e308)
+                                                                    return req
+                                                                },
+                                                                display() {
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let r = "到达" + format(this.req()) + " 氢以解锁下一种元素. (" + format(f.log10().div(this.req().log10()).mul(100).min(100)) + "%)"
+                                                                    return r
+                                                                },
+                                                                progress() { 
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let p = f.log10().div(this.req().log10())
+                                                                    return p
+                                                                },
+                                                            },
+                                                        },
+                                                        infoboxes: {
+                                                            introBox: {
+                                                                    title: "9号元素-氟",
+                                                                    body(){
+                                                                            let a = "你已经收集了1e200个氢原子，足够聚变生成一个氟原子了！"
+                                                                            let b = "聚变氟原子不会消耗任何更低层级的资源。"
+                                                                            let c = "氟（Fluorine）是一种非金属化学元素，化学符号为F，原子序数为9。"
+                                                                            let d = "氟是卤族元素之一，属周期系ⅦA族，在元素周期表中位于第二周期。氟元素的单质是F2，它是一种淡黄色 [1]  有剧毒的气体。"
+                                                                            let e = "氟气的腐蚀性很强，化学性质极为活泼，是氧化性最强的物质之一，甚至可以和部分惰性气体在一定条件下反应 [2]  。"
+                                                                            e += "氟是特种塑料、橡胶和冷冻机（氟氯烷）中的关键元素。由于氟的特殊化学性质，氟化学在化学发展史上有重要的地位。 "
+                                                                            let f = "氟是已知元素中非金属性最强的元素，这使得其没有正氧化态。"
+                                                                            let g = "氟的基态原子价电子层结构为2s22p5，且氟具有极小的原子半径，因此具有强烈的得电子倾向，具有强的氧化性，是已知的最强的氧化剂之一。" 
+                                                                            let h = "氟的卤素互化物有ClF、ClF3、BrF3、IF5等。"
+                                                                            let i = "试着通过重置将全部基本粒子、1-6号元素原子聚合成氟原子吧！"
+                                                    
+                                                                            return a + b + c + " " + d + e + f + g + h + i
+                                                                    },
+                                                                    
+                                                            },
+                                                        },
+                                                        layerShown() { return true },          // Returns a bool for if this layer's node should be visible in the tree.
+                                                        resetsNothing(){return true},
+                                                        upgrades: {
+                                                            // Look in the upgrades docs to see what goes here!
+                                                        },
+                                                        unlocked(){return player.O.unlocked},
+                                                        tabFormat:{
+                                                            "Main":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+            "buyables",
            
             "blank",
             , "blank", "blank", ]
