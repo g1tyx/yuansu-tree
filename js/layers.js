@@ -79,6 +79,8 @@
         if(hasMilestone("C",9)) mult = mult.mul(1e6)
         if(player.O.unlocked) mult = mult.mul(format(player.O.OpowerEff2))
         if(hasMilestone("C",11)) mult = mult.mul(1e20)
+        if(player.O.unlocked) mult = mult.mul(buyableEffect("O",12))
+        if(player.F.unlocked) mult = mult.mul(buyableEffect("O",13))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -110,27 +112,32 @@
             12: {
                 title: "氢阴离子(H+)",
                 description: "提升2.00x氢获取",
-                cost: new Decimal(5),
+                cost: new Decimal(2),
                         effect(){return new Decimal(2)},
                         effectDisplay(){return `x${format(this.effect())}`}
                 },
             13: {
                 title: "氢阳离子(H-)",
                 description: "氢提升基本粒子获取",
-                cost: new Decimal(5),
-                        effect(){return player.H.points.pow(0.2)},
-                        effectDisplay(){return `x${format(this.effect())}`}
+                cost: new Decimal(2),
+                        effect(){eff = player.H.points.pow(0.2)
+                        if (eff>1e80) eff = new Decimal(1e80).mul(eff.div(1e80).root(5))
+                    return eff},
+                        effectDisplay(){if (upgradeEffect("H",13)<1e80) return `x${format(this.effect())}`
+                        if (upgradeEffect("H",13)>1e80) return `x${format(this.effect())}(已达软上限)`}
                 },
             14: {
                     title: "氢气(H₂)",
                     description: "上一个升级以削弱的效果提升氢获取",
-                    cost: new Decimal(5),
+                    cost: new Decimal(2),
                     effect(){
                                 let eff = player.H.points.pow(0.15)
                             if(hasUpgrade("He",12)) eff = eff.mul(upgradeEffect("He",12))
+                            if (eff>1e80) eff = new Decimal(1e80).mul(eff.div(1e80).root(5))
                              return eff
                         },
-                            effectDisplay(){return `x${format(this.effect())}`}
+                            effectDisplay(){if (upgradeEffect("H",14)<1e80)return `x${format(this.effect())}`
+                            if (upgradeEffect("H",14)>1e80) return `x${format(this.effect())}(已达软上限)`}
                 },
             },
             tabFormat:{
@@ -199,7 +206,7 @@ addLayer("He", {
                             return r
                         },
                         progress() { 
-                            let f = player.points.add(1).max(1)
+                            let f = player.H.points.add(1).max(1)
                             let p = f.log10().div(this.req().log10())
                             return p
                         },
@@ -227,17 +234,18 @@ addLayer("He", {
             },
             milestones: {
                 0: {
-                    requirementDescription: "氦气集气瓶(20氦)",
+                    requirementDescription: "氦气集气瓶(1氦)",
                     effectDescription: "在重置后保留所有氢升级",
                     done() {
-                        return player.He.points.gte(20)
+                        return player.He.points.gte(1)
                     }
                 },
                 1: {
-                    requirementDescription: "工业氦气罐(100氦)",
+                    requirementDescription: "工业氦气罐(5氦)",
                     effectDescription: "每秒获取50%重置可获得的氢",
                     done() {
-                        return player.He.points.gte(100)
+                        return player.He.points.gte(5)
+
                     }}},
                     passiveGeneration(){return hasMilestone('Be',1)? 1 : 0},
                 
@@ -252,7 +260,7 @@ addLayer("He", {
                        
                         12: {
                             title: "氢化氦(HeH₂)",
-                            description: "质子提升氢气(H₂)效果",
+                            description: "基本粒子提升氢气(H₂)效果",
                             cost: new Decimal(10),
                                     effect(){let eff = player.points.pow(0.2)
                                     if (player.B.unlocked) eff = eff.mul(format(tmp.B.CpowerEffect))
@@ -434,7 +442,7 @@ addLayer("He", {
                                                 },
                                            
                                             12: {
-                                                title: "锂离子(Li-)",
+                                                title: "锂离子(Li+)",
                                                 description: "提升氢获取指数",
                                                 cost: new Decimal(4),
                                                         effect(){return new Decimal(1.05)},
@@ -684,6 +692,7 @@ addLayer("He", {
                                                             },
                                                          
                                                         },
+                                                        autoPrestige() { return (hasMilestone("F", 0))},
                                                         bars: {
                                                             NextCD: {
                                                                 direction: RIGHT,
@@ -861,6 +870,7 @@ addLayer("He", {
                                                             if (hasUpgrade("C",11)) buyBuyable("C",22)
                                                             if (hasUpgrade("C",11)) buyBuyable("C",23)
                                                             if (hasUpgrade("C",15)) buyBuyable("C",11)
+                                                            if (hasUpgrade("C",21)) buyBuyable("C",12)
                                                        
                                                         
                                                         },
@@ -873,7 +883,7 @@ addLayer("He", {
                                                             return PowerEffect},
                                                         Cdim1effect(){return buyableEffect("C",21)},
                                                     
-                                                        color: "#333333",                       // The color for this layer, which affects many elements.
+                                                        color: "#444444",                       // The color for this layer, which affects many elements.
                                                         resource: "碳",            // The name of this layer's main prestige resource.
                                                         row: 2,       
                                                         symbol:"C",   
@@ -897,7 +907,8 @@ addLayer("He", {
                                                             if (hasMilestone("C",8)) mult = mult.mul(10)
                                                             if (hasMilestone("C",9)) mult = mult.mul(10)  
                                                             if (hasMilestone("C",11)) mult = mult.mul(10) 
-                                                            mult = mult.mul(tmp.C.buyables[41].effect)                   // Returns your multiplier to your gain of the prestige resource.
+                                                            mult = mult.mul(tmp.C.buyables[41].effect)
+                                                            mult = mult.mul(tmp.O.buyables[13].effect)                     // Returns your multiplier to your gain of the prestige resource.
                                                             return mult     
                                                                  // Factor in any bonuses multiplying gain here.
                                                         },
@@ -1001,6 +1012,94 @@ addLayer("He", {
                                                                 },
                                                                 style: {"background-color":'#FF0000'},
                                                             },
+                                                            21: {
+                                                                title: "一氧化碳(CO)",
+                                                                description: "你可以自动提升阶层。",
+                                                                cost: new Decimal(1000000),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(1)
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){
+                                                                return "在上面写着了！"
+                                                                },
+                                                                unlocked(){
+                                                                    return hasChallenge("F",12)
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
+                                                            22: {
+                                                                title: "二氧化碳(CO₂)",
+                                                                description: "每有5个时间速度，增加1个增强器",
+                                                                cost: new Decimal(100000000),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(0)
+                                                                s13 = s13.add((getBuyableAmount("C",41)).div(5))
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){return `+${format(this.effect())}`},
+                                                                unlocked(){
+                                                                    return hasChallenge("F",12)
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
+                                                            23: {
+                                                                title: "三氧化碳(CO₃)",
+                                                                description: "木炭能量发生器、助推器、增强器的成本膨胀削弱20%",
+                                                                cost: new Decimal(1e15),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(20)
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){return `-${format(this.effect())}%`},
+                                                                unlocked(){
+                                                                    return hasChallenge("F",21)
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
+                                                            24: {
+                                                                title: "四氧化碳(CO₄)",
+                                                                description: "木炭能量增强器基数+1",
+                                                                cost: new Decimal(1e24),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(1)
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){return `+${format(this.effect())}`},
+                                                                unlocked(){
+                                                                    return hasChallenge("F",21)
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
+                                                            25: {
+                                                                title: "五氧化碳(CO₅)",
+                                                                description: "级别成本膨胀削弱10%",
+                                                                cost: new Decimal(1e37),
+                                                                currencyDisplayName: "石墨能量",
+                                                                currencyInternalName: "Cpower2",
+                                                                currencyLayer: "C",
+                                                                effect(){
+                                                                let s13 = new Decimal(10)
+                                                                return s13
+                                                                },
+                                                                effectDisplay(){return `-${format(this.effect())}%`},
+                                                                unlocked(){
+                                                                    return hasChallenge("F",22)
+                                                                },
+                                                                style: {"background-color":'#FF0000'},
+                                                            },
                                                             // Look in the upgrades docs to see what goes here!
                                                         },
                                                         resetsNothing() { return true},
@@ -1030,7 +1129,7 @@ addLayer("He", {
                                                                 style: {"background-color":'#00FFFF'},
                                                                 cost(x) {
                                                                     if(x<10){ return new Decimal(10).mul(new Decimal(10).pow(x))}
-                                                                    if(9<x<100){ return new Decimal(10).mul(new Decimal(5000).pow((x).sub(7)))}
+                                                                    if(9<x<100){ return new Decimal(10).mul((new Decimal(5000).mul(hasUpgrade('C',25)? 0.9 : 1)).pow((x).sub(7)))}
                                                                 },
                                                                 canAfford() { return player.C.Cpower.gte(this.cost())},
                                                                 buy() {
@@ -1069,7 +1168,8 @@ addLayer("He", {
                                                             21: {
                                                                 unlocked(){return layers.C.Rank().gte(1)},
                                                               title: "木炭能量发生器",
-                                                              cost(x) {return new Decimal(10).mul(new Decimal(1.5).pow(x))},
+                                                              cost(x) {if((getBuyableAmount("C",21))<20) return new Decimal(10).mul(new Decimal(1.5).pow(x))
+                                                                if((getBuyableAmount("C",21))>19) return new Decimal(20000).mul((new Decimal(10).mul(hasUpgrade('C',23)? 0.8 : 1)).pow((x).sub(new Decimal(19))))},
                                                               canAfford() { return player.C.Cpower.gte(this.cost())},
                                                               autoed(){return hasUpgrade("C",11)},
                                                               buy() {
@@ -1087,15 +1187,19 @@ addLayer("He", {
                                                                 if (hasMilestone("C",11)) eff = eff.mul(10)
                                                                 if (hasMilestone("C",7)) eff = eff.pow(1.15)
                                                                 if (player.O.unlocked) eff = eff.mul(tmp.O.buyables[12].effect)
-                                                                eff = eff.mul(tmp.C.buyables[41].effect)       
-                                                                
+                                                                eff = eff.mul(tmp.C.buyables[41].effect)
+                                                                if (inChallenge('F',11)) eff = eff.pow(0.8)       
+                                                                eff = eff.mul(buyableEffect("O",12))
+                                                                if (hasMilestone("C",14)) eff = eff.mul((tmp.C.Tier).add(1).pow(hasMilestone('C',15)? 4 : 1)).mul((tmp.C.Rank).add(1).pow(hasMilestone('C',15)? 4 : 1))
+                                                                if (eff>1e50)eff = ((eff.div(1e50)).root(2)).mul(1e50)
                                                                 return eff
                                                             },
                                                         },
                                                             22: {
                                                                 title: "木炭能量助推器",
                                                                 unlocked(){return layers.C.Rank().gte(2)},
-                                                                cost(x) {return new Decimal(100).mul(new Decimal(4).pow(x))},
+                                                                cost(x) {if((getBuyableAmount("C",22))<20) return new Decimal(100).mul(new Decimal(4).pow(x))
+                                                                    if((getBuyableAmount("C",22))>19) return new Decimal(1e14).mul((new Decimal(20).mul(hasUpgrade('C',23)? 0.8 : 1)).pow((x).sub(new Decimal(19))))},
                                                                 canAfford() { return player.C.Cpower.gte(this.cost())},
                                                                 autoed(){return hasUpgrade("C",11)},
                                                                 buy() {
@@ -1107,12 +1211,16 @@ addLayer("He", {
                                                                 if (!hasUpgrade("C",13)) eff = new Decimal(x).mul(2).add(1)
                                                                 if (hasUpgrade("C",13)) eff = new Decimal(x.add(getBuyableAmount("C",23))).mul(2).add(1)
                                                                   eff = eff.pow(tmp.C.buyables[23].effect)
+                                                                  if (inChallenge('F',11)) eff = eff.pow(0.8)
+                                                                  if (inChallenge("F", 22)) eff = eff.mul(1e-10)
                                                                   return new Decimal(eff)}
                                                               },
                                                               23: {
                                                                 title: "木炭能量增强器",
                                                                 unlocked(){return layers.C.Rank().gte(3)},
-                                                                cost(x) {return new Decimal(1000).mul(new Decimal(9).pow(x))},
+                                                                cost(x) {if((getBuyableAmount("C",23))<20) return new Decimal(1000).mul(new Decimal(9).pow(x))
+                                                                    if((getBuyableAmount("C",23))>19) return new Decimal(1e22).mul((new Decimal(45).mul(hasUpgrade('C',23)? 0.8 : 1)).pow((x).sub(new Decimal(19))))
+                                                                },
                                                                 canAfford() { return player.C.Cpower.gte(this.cost())},
                                                                 autoed(){return hasUpgrade("C",11)},
                                                                 buy() {
@@ -1122,12 +1230,21 @@ addLayer("He", {
                                                                 display() {return `指数加成木炭能量助推器的效果。\n持有木炭能量增强器数量： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}木炭能量\n效果：木炭能量助推器效果^${format(this.effect())}`},
                                                                 effect(x) { 
                                                                   if (getBuyableAmount("C",23)<4) eff = new Decimal(x).mul(0.5).add(1)
-                                                                  if (getBuyableAmount("C",23)>3) eff = new Decimal(x).mul(0.1).mul((player.O.OpowerEff).div(10).add(1)).add(2.5)
+                                                                  if (getBuyableAmount("C",23)>3&&!hasUpgrade("C",22)) eff = new Decimal(x).mul(0.1).mul(((player.O.OpowerEff).add(tmp.F.challenges[11].rewardEffect)).div(100).add(1)).add(2.5)
+                                                                  if (getBuyableAmount("C",23)>3&&hasUpgrade("C",22)) eff = new Decimal((x).add(upgradeEffect("C",22))).mul(0.1).mul(((player.O.OpowerEff).add(tmp.F.challenges[11].rewardEffect).add(hasUpgrade('C',24)? 1 : 0)).div(100).add(1)).add(2.5)
+                                                                  if (inChallenge('F',11)) eff = eff.pow(0.8)
+                                                                  if (inChallenge("F", 12)) eff = eff.pow(0.1)
+                                                                  if (inChallenge("F", 22)) eff = eff.pow(0.05)
                                                                   return new Decimal(eff)}
                                                               },
                                                               31: {
                                                                 title: "石墨能量",
-                                                                gain() { return player.C.Cpower.div(1e16).pow(0.6)},
+                                                                gain() { 
+                                                                    let gain = player.C.Cpower.div(1e16).pow(0.45)
+                                                                if (hasMilestone("C",12)) gain = gain.mul(tmp.C.Rank)
+                                                                if (hasMilestone("C",13)) gain = gain.mul(tmp.C.Tier)
+                                                                return gain
+                                                            },
                                                                 display() { // Everything else displayed in the buyable button after the title
                                                                     let data = tmp[this.layer].buyables[this.id]
                                                                     let display = ("重置你的级别、阶层、木炭发生器倍增器增强器等级和木炭能量，获得"+formatWhole(tmp[this.layer].buyables[this.id].gain)+"石墨能量\n"+
@@ -1156,7 +1273,7 @@ addLayer("He", {
                                                                 title: "时间速度",
                                                                 unlocked(){return hasMilestone("C",10)},
                                                                 cost(x) {return new Decimal(3).pow(x)},
-                                                                canAfford() { return player.C.Cpower.gte(this.cost())},
+                                                                canAfford() { return player.C.Cpower2.gte(this.cost())},
                                                                 autoed(){return false},
                                                                 buy() {
                                                                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
@@ -1165,7 +1282,10 @@ addLayer("He", {
                                                                 style: {"background-color":'#FF0000'},
                                                                 display() {return `提升所有石墨能量之前资源的获取速度。\n持有时间加速数量： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}石墨能量\n效果：时间速度*${format(this.effect())}`},
                                                                 effect(x) { let eff = new Decimal(1)
-                                                                  eff = eff.mul(new Decimal(1.5).pow(x))
+                                                                  eff = eff.mul((new Decimal(1.5).add(layers["F"]["challenges"]["21"].rewardEffect())).pow(x))
+                                                                  eff = eff.mul(tmp.F.effect)
+                                                                  eff = eff.mul(new Decimal(2).pow((layers["F"]["challenges"]["12"].rewardEffect())))
+                                                                  if (eff>1e50)eff = ((eff.div(1e50)).root(10)).mul(1e50)
                                                                   return eff
                                                                 }
                                                               },
@@ -1267,6 +1387,38 @@ addLayer("He", {
                                                              
                                                             }
                                                         },
+                                                        12: {
+                                                            requirementDescription: "石墨罐子(15级别)",
+                                                            effectDescription: "等级倍增石墨能量获取",
+                                                            done() {
+                                                                return tmp.C.Rank.gte(15)
+                                                             
+                                                            }
+                                                        },
+                                                        13: {
+                                                            requirementDescription: "大石墨罐子(4阶层)",
+                                                            effectDescription: "阶层倍增石墨能量获取",
+                                                            done() {
+                                                                return tmp.C.Tier.gte(4)
+                                                             
+                                                            }
+                                                        },
+                                                        14: {
+                                                            requirementDescription: "小石墨堆(5阶层)",
+                                                            effectDescription: "前两个里程碑同样适用于木炭能量",
+                                                            done() {
+                                                                return tmp.C.Tier.gte(5)
+                                                             
+                                                            }
+                                                        },
+                                                        15: {
+                                                            requirementDescription: "石墨堆(8阶层)",
+                                                            effectDescription: "前一个里程碑效果提升至4次方",
+                                                            done() {
+                                                                return tmp.C.Tier.gte(8)
+                                                             
+                                                            }
+                                                        },
                                                     },
                                                         bars: {
                                                             NextCD: {
@@ -1317,6 +1469,14 @@ addLayer("He", {
                                                         "Charcoal-Energy":{
                                                             content:["infobox",
                                                         "main-display",
+                                                        ["display-text",
+                                                        function() {return "你有 <h2 style='color:#444444;text-shadow:0px 0px 10px;'>"+ format(player.C.Cpower) + "</h2> 木炭能量"},
+                                                            {}],
+                                                            "blank",
+                                                        ["display-text",
+                                                        function() {return "你有 <h2 style='color:#FF0000;text-shadow:0px 0px 10px;'>"+ format(player.C.Cpower2) + "</h2> 石墨能量"},
+                                                            {}],
+                                                            "blank",
         
                                                     "prestige-button",
         "blank",
@@ -1335,6 +1495,9 @@ addLayer("He", {
                 ["display-text",
                 function() {return '*警告* 当木炭能量增强器超过8后，其效果将受到二重软上限限制！'},
                     {}],
+                    ["display-text",
+                    function() {return '*警告* 当木炭能量超过1e50时，其获取将受到软上限限制！'},
+                        {}],
         
         "buyables",
        
@@ -1505,7 +1668,11 @@ addLayer("He", {
                                                                 title: "氮原子(N)",
                                                                 description: "级别提升木炭能量获取",
                                                                 cost: new Decimal(2),
-                                                                effect(){return new Decimal((tmp.C.Rank).pow(0.4))},
+                                                                effect(){ eff = new Decimal(1)
+                                                                    eff = eff.pow((tmp.C.Rank).pow(0.4))
+                                                                    if(inChallenge("F", 21)) eff = eff.pow(0)
+                                                                return eff
+                                                            },
                                                                 effectDisplay(){return `*${format(this.effect())}`},
                                                                 unlocked(){return hasMilestone("N",1)}
                                                                 },
@@ -1514,6 +1681,7 @@ addLayer("He", {
                                                                     description: "木炭能量增幅碳获取的公式更好",
                                                                     cost: new Decimal(3),
                                                                     effect(){let eff = new Decimal(1.2)
+                                                                        if(inChallenge("F", 21)) eff = eff.pow(0)
                                                                          return eff},
                                                                     effectDisplay(){return `*${format(this.effect())}`},
                                                                     unlocked(){return hasMilestone("N",1)}
@@ -1558,6 +1726,7 @@ addLayer("He", {
                                                                     
                                                             },
                                                         },
+                                                        autoPrestige() { return (hasMilestone("F", 1))},
                                                         milestones: {
                                                             0: {
                                                                 requirementDescription: "氮气集气瓶(1氮)",
@@ -1645,7 +1814,7 @@ addLayer("He", {
                                                             OpowerEff: new Decimal(0),
                                                             OpowerEff2: new Decimal(0),        // "points" is the internal name for the main resource of the layer.
                                                         }},
-                                                        color: "#0000FF",                       // The color for this layer, which affects many elements.
+                                                        color: "#0066FF",                       // The color for this layer, which affects many elements.
                                                         resource: "氧",            // The name of this layer's main prestige resource.
                                                         row: 3,  
                                                         position: 10,                               // The row this layer is on (0 is the first row).
@@ -1701,7 +1870,7 @@ addLayer("He", {
                                                                 12: {
                                                                     title: "氧化氢(H₂O)",
                                                                     gain() { return player.H.points.div(1e140).cbrt().times(player.O.Opower.div(2500)).root(3.5)},
-                                                                    effect() { return Decimal.pow(10, player[this.layer].buyables[this.id].plus(1).log10().cbrt())},
+                                                                    effect() { return Decimal.pow(10, player[this.layer].buyables[this.id].log10().cbrt()).plus(1)},
                                                                     display() { // Everything else displayed in the buyable button after the title
                                                                         let data = tmp[this.layer].buyables[this.id]
                                                                         let display = ("献祭你所有的氢和氧气，获得 "+formatWhole(tmp[this.layer].buyables[this.id].gain)+" 氧化氢\n"+
@@ -1723,6 +1892,32 @@ addLayer("He", {
                                                                     style: {'height':'140px', 'width':'140px', 'font-size':'9px'},
                                                                     autoed() { return false},
                                                                 },
+                                                                13: {
+                                                                    title: "过氧化氢(H₂O₂)",
+                                                                    gain() { return player.H.points.div(1e260).cbrt().times(player.O.Opower.div(2e5)).root(6.5) },
+                                                                    effect() { let eff = Decimal.pow(1.2,player[this.layer].buyables[this.id]).log10().add(1).pow(new Decimal(2.5).add(layers["F"]["challenges"]["22"].rewardEffect()))
+                                                                if (eff>1e50) eff = ((eff.div(1e50)).root(10)).mul(1e50)
+                                                            return eff},
+                                                                    display() { // Everything else displayed in the buyable button after the title
+                                                                        let data = tmp[this.layer].buyables[this.id]
+                                                                        let display = ("献祭所有氢和氧气，获得 "+formatWhole(tmp[this.layer].buyables[this.id].gain)+" 过氧化氢\n"+
+                                                                        "需要: 250,000氧气、1e260氢\n"+
+                                                                        "数量: " + formatWhole(player[this.layer].buyables[this.id])+("效果: 加成氢获取与碳获取 "+format(tmp[this.layer].buyables[this.id].effect) + 'x(超过1e50后受到10次方根限制)'))
+                                                                        return display;
+                                                                    },
+                                                                    unlocked() { return hasChallenge("F",11)}, 
+                                                                    canAfford() { return player.O.Opower.gte(2e5)&&player.H.points.gte(1e260)},
+                                                                    buy() { 
+                                                                        player.H.points = new Decimal(0);
+                                                                        player.O.Opower = new Decimal(0);
+                                                                        player.O.buyables[this.id] = player.O.buyables[this.id].plus(tmp[this.layer].buyables[this.id].gain);
+                                                                    },
+                                                                    buyMax() {
+                                                                        // I'll do this later ehehe
+                                                                    },
+                                                                    style: {'height':'140px', 'width':'140px', 'font-size':'9px'},
+                                                                    autoed() { return false},
+                                                                },
                                                             },
                                                         OpowerEff() { 
                                                             let eff = Decimal.sub(4, Decimal.div(4, player.O.Opower.plus(1).log10().plus(1))) 
@@ -1730,6 +1925,8 @@ addLayer("He", {
                                                             return eff
                                                         },
                                                         solEnEff2() {let eff2 = player.O.Opower.plus(1).pow(2)
+                                                            if (eff2>1e40) eff2 = ((eff2.div(1e40)).root(10)).mul(1e40)
+                                                            if (eff2>1e50) eff2 = ((eff2.div(1e50)).root(100)).mul(1e50)
                                                         player.O.OpowerEff2 = eff2
                                                         return eff2 },
                                                         Opowergain() { 
@@ -1743,7 +1940,8 @@ addLayer("He", {
                                                         },
                                                         gainMult() {            
                                                             let mult = new Decimal(1)
-                                                            mult = mult.mul(((player.N.points).sub(14)).pow(2))                // Returns your multiplier to your gain of the prestige resource.
+                                                            mult = mult.mul(((player.N.points).sub(12)).pow(2))    
+                                                            mult = mult.mul(buyableEffect("O",11))                // Returns your multiplier to your gain of the prestige resource.
                                                             return mult              // Factor in any bonuses multiplying gain here.
                                                         },
                                                         gainExp() {                             // Returns the exponent to your gain of the prestige resource.
@@ -1809,10 +2007,10 @@ addLayer("He", {
                                                                 function() {return '你有 ' + format(player.O.Opower) + '氧气(O₂)'},
                                                                     {}],
                                                                     ["display-text",
-                                                                function() {return '你的氧气使木炭能量增强器软上限削弱' + format(player.O.OpowerEff) + '%'},
+                                                                function() {return '你的氧气使木炭能量增强器软上限削弱' + format(player.O.OpowerEff) + '%(上限为4%)'},
                                                                     {}],
                                                                     ["display-text",
-                                                                function() {return '同时也使氢获取倍增' + format(player.O.OpowerEff2) + 'x'},
+                                                                function() {return '同时也使氢获取倍增' + format(player.O.OpowerEff2) + 'x(当大于1e40时受到10次方根限制)(当大于1e50时受到100次方根限制)'},
                                                                     {}],
                                                             ["bar", "NextCD"],
                                                             ["infobox","introBox"],
@@ -1845,8 +2043,8 @@ addLayer("He", {
                                                         requires: new Decimal(1e200),              // The amount of the base needed to  gain 1 of the prestige currency.
                                                                                                 // Also the amount required to unlock the layer.
                                                     
-                                                        type: "normal",                         // Determines the formula used for calculating prestige currency.
-                                                        exponent: 0.001,                          // "normal" prestige gain is (currency^exponent).
+                                                        type: "static",                         // Determines the formula used for calculating prestige currency.
+                                                        exponent: 2.1,                          // "normal" prestige gain is (currency^exponent).
                                                     
                                                         gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
                                                             return new Decimal(1)               // Factor in any bonuses multiplying gain here.
@@ -1854,14 +2052,180 @@ addLayer("He", {
                                                         gainExp() {                             // Returns the exponent to your gain of the prestige resource.
                                                             return new Decimal(1)
                                                         },
+                                                        milestones: {
+                                                            0: {
+                                                                requirementDescription: "氟气集气瓶(10氟)",
+                                                                effectDescription: "自动进行硼重置",
+                                                                done() {
+                                                                    return player.F.points.gte(10)
+                                                                }
+                                                            },
+                                                            1: {
+                                                                requirementDescription: "工业氟气罐(30氟)",
+                                                                effectDescription: "自动进行氮重置",
+                                                                done() {
+                                                                    return player.F.points.gte(30)
+                                                                 
+                                                                }
+                                                            },
+                                                        },
+                                                        challenges: { //CompleteOrder:11x1,11x2,12x1,11x3,21x1,12x2,22x1,12x3,21x2,21x3,22x2,22x3
+                                                            rows: 2,
+                                                            cols: 2,
+                                                            11: {
+                                                                name: "氟化氢(HF)",
+                                                                currencyDisplayName: "木炭能量",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "木炭能量发生器、助推器和增强器的效果^0.8"
+                                                                    if (inChallenge("F", 11)) c11 = c11 + " (挑战中)"
+                                                                    if (challengeCompletions("F", 11) == 1) c11 = c11 + " (已完成)"
+                                                                    c11 = c11 + "<br>分子数目:" + challengeCompletions("F",11) + "/" + tmp.F.challenges[11].completionLimit
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("F", 11) == 0) return Decimal.pow(10,14);
+                                                                    if (challengeCompletions("F", 11) == 1) return Decimal.pow(10,17);
+                                                                    if (challengeCompletions("F", 11) == 2) return Decimal.pow(10,22);
+                                                                },
+                                                                completionLimit:3 ,
+
+                                                                rewardDescription: "木炭能量增强器效果软上限削弱",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(10)
+                                                                    let c11c = challengeCompletions("F", 11)
+                                                                    c11 = c11.mul(c11c)
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(tmp.F.challenges[11].rewardEffect)+"%(第1次完成该挑战时，解锁过氧化氢！)"},
+                                                                onEnter() { 
+                                                                        startCChallenge()
+                                                                    
+                                                                },
+                                                                unlocked(){
+                                                                    return true
+                                                                }
+                                                            },
+                                                            12: {
+                                                                name: "一氧化二氟(F₂O)",
+                                                                currencyDisplayName: "木炭能量",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "木炭能量增强器的一重软上限立即开始"
+                                                                    if (inChallenge("F", 12)) c11 = c11 + " (挑战中)"
+                                                                    if (challengeCompletions("F", 12) == 1) c11 = c11 + " (已完成)"
+                                                                    c11 = c11 + "<br>分子数目:" + challengeCompletions("F",12) + "/" + tmp.F.challenges[12].completionLimit
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("F", 12) == 0) return Decimal.pow(10,18);
+                                                                    if (challengeCompletions("F", 12) == 1) return Decimal.pow(10,34);
+                                                                    if (challengeCompletions("F", 12) == 2) return Decimal.pow(10,60);
+                                                                },
+                                                                completionLimit:3 ,
+
+                                                                rewardDescription: "加强时间速度效果",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(10)
+                                                                    let c11c = new Decimal(challengeCompletions("F", 12))
+                                                                    c11 = c11.pow(c11c)
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(tmp.F.challenges[12].rewardEffect)+"x(第1次完成该挑战时，解锁一氧化碳和二氧化碳！)"},
+                                                                onEnter() { 
+                                                                        startCChallenge()
+                                                                    
+                                                                },
+                                                                unlocked(){
+                                                                    return true
+                                                                }
+                                                            },
+                                                            21: {
+                                                                name: "次氟酸(HOF)",
+                                                                currencyDisplayName: "木炭能量",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "氮层级所有升级全部无效"
+                                                                    if (inChallenge("F", 21)) c11 = c11 + " (挑战中)"
+                                                                    if (challengeCompletions("F", 21) == 1) c11 = c11 + " (已完成)"
+                                                                    c11 = c11 + "<br>分子数目:" + challengeCompletions("F",21) + "/" + tmp.F.challenges[21].completionLimit
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("F", 21) == 0) return Decimal.pow(10,40);
+                                                                    if (challengeCompletions("F", 21) == 1) return Decimal.pow(10,92);
+                                                                    if (challengeCompletions("F", 21) == 2) return Decimal.pow(10,98);
+                                                                },
+                                                                completionLimit:3 ,
+
+                                                                rewardDescription: "提升时间速度基数",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(0)
+                                                                    let c11c = new Decimal(challengeCompletions("F", 21))
+                                                                    c11 = c11.add(c11c.mul(0.5))
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(tmp.F.challenges[21].rewardEffect)+"+(第1次完成该挑战时，解锁三氧化碳和四氧化碳！)"},
+                                                                onEnter() { 
+                                                                        startCChallenge()
+                                                                    
+                                                                },
+                                                                unlocked(){
+                                                                    return true
+                                                                }
+                                                            },
+                                                            22: {
+                                                                name: "氟化锂(LiF)",
+                                                                currencyDisplayName: "木炭能量",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "木炭能量助推器和木炭能量增强器被灾难性削弱"
+                                                                    if (inChallenge("F", 22)) c11 = c11 + " (挑战中)"
+                                                                    if (challengeCompletions("F", 22) == 1) c11 = c11 + " (已完成)"
+                                                                    c11 = c11 + "<br>分子数目:" + challengeCompletions("F",22) + "/" + tmp.F.challenges[22].completionLimit
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("F", 22) == 0) return Decimal.pow(10,52);
+                                                                    if (challengeCompletions("F", 22) == 1) return Decimal.pow(10,73);
+                                                                    if (challengeCompletions("F", 22) == 2) return Decimal.pow(10,74);
+                                                                },
+                                                                completionLimit:3 ,
+
+                                                                rewardDescription: "提升过氧化氢效果",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(1)
+                                                                    let c11c = new Decimal(challengeCompletions("F", 22))
+                                                                    c11 = c11.add(c11c.mul(new Decimal(0.15)))
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(tmp.F.challenges[22].rewardEffect)+"^(第1次完成该挑战时，解锁五氧化碳！)"},
+                                                                onEnter() { 
+                                                                        startCChallenge()
+                                                                    
+                                                                },
+                                                                unlocked(){
+                                                                    return true
+                                                                }
+                                                            },
+                                                        },
+                                                        effect() { 
+                                                            let eff = Decimal.sub(4, Decimal.div(4, player.F.points.plus(1).log10().plus(1))) 
+                                                            player.F.OpowerEff = eff
+                                                            return eff
+                                                        },
                                                         bars: {
                                                             NextCD: {
                                                                 direction: RIGHT,
                                                                 width: 700,
                                                                 height: 30,
-                                                                fillStyle: {'background-color' : "#800080"},
+                                                                fillStyle: {'background-color' : "#6600FF"},
                                                                 req() {
-                                                                    let req =new Decimal(1e308)
+                                                                    let req =new Decimal("1e650")
                                                                     return req
                                                                 },
                                                                 display() {
@@ -1896,6 +2260,7 @@ addLayer("He", {
                                                                     
                                                             },
                                                         },
+                                                        
                                                         layerShown() { return true },          // Returns a bool for if this layer's node should be visible in the tree.
                                                         resetsNothing(){return true},
                                                         upgrades: {
@@ -1908,6 +2273,7 @@ addLayer("He", {
                                                                 "prestige-button",
                                                             ["bar", "NextCD"],
                                                             ["infobox","introBox"],
+                                                            "challenges",
                                                         "grid",
 
             "blank",
@@ -1919,4 +2285,50 @@ addLayer("He", {
             , "blank", "blank", ]
                                                     },
                                                         },
+                                                        effectDescription() {
+                                                            return "倍增时间速度效果" + format(tmp.F.effect) + "x"
+                                                        },
                                                     })
+                                                    addLayer("Ne", {
+                                                        startData() { return {                  // startData is a function that returns default data for a layer. 
+                                                            unlocked: false,                     // You can add more variables here to add them to your layer.
+                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                        }},
+                                                    
+                                                        color: "#6600FF",                       // The color for this layer, which affects many elements.
+                                                        resource: "氖",            // The name of this layer's main prestige resource.
+                                                        row: 4,                                 // The row this layer is on (0 is the first row).
+                                                    
+                                                    
+                                                        baseResource: "氢",                 // The name of the resource your prestige gain is based on.
+                                                        baseAmount() { return player.H.points },  // A function to return the current amount of baseResource.
+                                                    
+                                                        requires: new Decimal("1e650"),              // The amount of the base needed to  gain 1 of the prestige currency.
+                                                                                                // Also the amount required to unlock the layer.
+                                                    
+                                                        type: "static",                         // Determines the formula used for calculating prestige currency.
+                                                        exponent: 5,                          // "normal" prestige gain is (currency^exponent).
+                                                    
+                                                        gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
+                                                            return new Decimal(1)               // Factor in any bonuses multiplying gain here.
+                                                        },
+                                                        gainExp() {                             // Returns the exponent to your gain of the prestige resource.
+                                                            return new Decimal(1)
+                                                        },
+                                                    
+                                                        layerShown() { return player.F.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
+                                                        resetsNothing(){return true},
+                                                        upgrades: {
+                                                            // Look in the upgrades docs to see what goes here!
+                                                        },
+                                                    })
+                                                    function startCChallenge() {
+                                                        doReset("C")
+                                                        player.C.points = new Decimal(0)
+                                                        player.C.Cpower = new Decimal(10)
+                                                        player.C.buyables[11] = new Decimal(0)
+                                                        player.C.buyables[12] = new Decimal(0)
+                                                        player.C.buyables[21] = new Decimal(0)
+                                                        player.C.buyables[22] = new Decimal(0)
+                                                        player.C.buyables[23] = new Decimal(0)
+                                                    }

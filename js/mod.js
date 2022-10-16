@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Beta v8.0",
-	name: "生命之源",
+	num: "Beta v9.1",
+	name: "死亡杀手",
 }
 
 let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
@@ -36,10 +36,18 @@ let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
 		- 修复了碳可购买“木炭能量增强器”效果为乘算而非指数的bug。<br>
 		<h3>Beta v8.0“生命之源”</h3><br>
 		- 加入氧层级并加入可购买。<br>
-		- 对碳层级加入新机制石墨能量和石墨升级、软上限。<br>`
+		- 对碳层级加入新机制石墨能量和石墨升级、软上限。<br>
+		<h3>Beta v9.0“死亡杀手”</h3><br>
+		- 加入氟层级并加入挑战。<br>
+		- 对碳层级加入更多升级、里程碑、软上限。<br>
+		- 对氧层级加入更多可购买和软上限。<br>
+		- 降低氢层级升级价格。<br>
+		- 修复Bug。<br>
+		<h3>Beta v9.1“Super死亡杀手”</h3><br>
+		- 修复初始氢获取为NaN的bug。<br>`
 		
 
-let winText = `恭喜你！你已经到达了Beta v8.0的结局！等待碳层级加入更多内容吧！`
+let winText = `恭喜你！你已经到达了Beta v9.0的结局！等待氖层级加入更多内容吧！`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
@@ -78,7 +86,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.F.points.gte(new Decimal("1"))
+	return player.Ne.points.gte(new Decimal("1"))
 }
 
 
@@ -100,5 +108,5 @@ function maxTickLength() {
 function fixOldSave(oldVersion){
 }
 var displayThings = [
-	"当前残局:1氟",
+	"当前残局:1氖",
 ]
