@@ -1,11 +1,12 @@
  addLayer("H", {
-    name: "氢", // This is optional, only used in a few places, If absent it just uses the layer id.
+    name: "氢", // This is optional, only used in a few places, If absent it just uses the layer id.currency
     symbol: "H", // This appears on the layer's node. Default is the id with the first letter capitalized
     position: 0, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
     startData() { return {
         unlocked: false,
 		points: new Decimal(0),
     }},
+    
     color: "#6495ED",
     requires: new Decimal(10), // Can be a function that takes requirement increases into account
     resource: "氢", // Name of prestige currency
@@ -110,14 +111,14 @@
                 },
            
             12: {
-                title: "氢阴离子(H+)",
+                title: "氢阴离子(H-)",
                 description: "提升2.00x氢获取",
                 cost: new Decimal(2),
                         effect(){return new Decimal(2)},
                         effectDisplay(){return `x${format(this.effect())}`}
                 },
             13: {
-                title: "氢阳离子(H-)",
+                title: "氢阳离子(H+)",
                 description: "氢提升基本粒子获取",
                 cost: new Decimal(2),
                         effect(){eff = player.H.points.pow(0.2)
@@ -178,6 +179,7 @@ addLayer("He", {
             if(player.B.unlocked) mult = mult.mul(format(tmp.B.CpowerEffect))
              return mult
                 },
+                branches:["H"],
                 gainExp() { // Calculate the exponent on main currency from bonuses
                     exp = new Decimal(1)
                     if (hasUpgrade("Li",13)) exp = exp.times(1.05)
@@ -188,7 +190,7 @@ addLayer("He", {
                 hotkeys: [
                     {key: "j", description: "J: 重置获得氦", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
                 ],
-                layerShown(){return true},
+                layerShown(){return player.H.unlocked},
                 bars: {
                     NextCD: {
                         direction: RIGHT,
@@ -294,7 +296,8 @@ addLayer("He", {
                               display() {return `(*不消耗氦)一种拥有巨大潜力的新型能源，在月球上有巨大储备。\n持有氦-3分子数目： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}氦\n效果：氢获取*${format(this.effect())}倍`},
                               effect(x) { 
                                 mult2 = new Decimal(x).add(1).pow(0.7)
-                                return new Decimal(mult2)}
+                                return new Decimal(mult2)},
+                              unlocked(){return false}
                             },
                         },
                         tabFormat:{
@@ -374,7 +377,7 @@ addLayer("He", {
                                     hotkeys: [
                                         {key: "k", description: "K: 重置获得锂", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
                                     ],
-                                    layerShown(){return true},
+                                    layerShown(){return player.He.unlocked},
                                     bars: {
                                         NextCD: {
                                             direction: RIGHT,
@@ -417,6 +420,7 @@ addLayer("He", {
                                                 },
                                         },
                                 },
+                                branches:["H"],
                                 resetsNothing() { return hasMilestone("B",4)},
                                 challenges:{
                                 11: {
@@ -479,11 +483,12 @@ addLayer("He", {
     
                                                     addLayer("Be", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
-                                                            unlocked: true,                     // You can add more variables here to add them to your layer.
+                                                            unlocked: false,                     // You can add more variables here to add them to your layer.
                                                             points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
                                                         }},
                                                         symbol:"Be",
                                                         position: 0,
+                                                        branches:["He"],
 
                                                     
                                                         color: "#808000",                       // The color for this layer, which affects many elements.
@@ -620,7 +625,7 @@ addLayer("He", {
                                                         
                                                     addLayer("B", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
-                                                            unlocked: true,                     // You can add more variables here to add them to your layer.
+                                                            unlocked: false,                     // You can add more variables here to add them to your layer.
                                                             points: new Decimal(0),  
                                                             Apower: new Decimal(1),
                                                             Bpower: new Decimal(1),
@@ -649,7 +654,8 @@ addLayer("He", {
                                                         gainExp() {                             // Returns the exponent to your gain of the prestige resource.
                                                             return new Decimal(1)
                                                         },     
-                                                        layerShown() { return player.Be.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
+                                                        layerShown() { return player.Be.unlocked },  
+                                                        branches:["He","Li"],        // Returns a bool for if this layer's node should be visible in the tree.
                                                         
                                                         milestones: {
                                                             0: {
@@ -865,7 +871,8 @@ addLayer("He", {
                                                             Tier:new Decimal(0)  // "points" is the internal name for the main resource of the layer.
                                                         }},
                                                         update(diff) {
-                                                            if (hasMilestone("C",2)) player.C.Cpower = player.C.Cpower.add(((buyableEffect("C",21)).add(1)).times(diff))
+                                                            if (hasMilestone("C",2)) player.C.Cpower = player.C.Cpower.add(new Decimal(1).times(diff))
+                                                            if (hasMilestone("C",3)) player.C.Cpower = player.C.Cpower.add(((buyableEffect("C",21)).add(1)).times(diff))
                                                             if (hasUpgrade("C",11)) buyBuyable("C",21)
                                                             if (hasUpgrade("C",11)) buyBuyable("C",22)
                                                             if (hasUpgrade("C",11)) buyBuyable("C",23)
@@ -887,7 +894,8 @@ addLayer("He", {
                                                         resource: "碳",            // The name of this layer's main prestige resource.
                                                         row: 2,       
                                                         symbol:"C",   
-                                                        position: 2,                        // The row this layer is on (0 is the first row).
+                                                        position: 2, 
+                                                        branches:["Li"],                       // The row this layer is on (0 is the first row).
                                                         effect(){return player.C.points.pow(0.3)},
                                                     
                                                         baseResource: "氢",                 // The name of the resource your prestige gain is based on.
@@ -900,15 +908,15 @@ addLayer("He", {
                                                         exponent: 0.5,                          // "normal" prestige gain is (currency^exponent).
                                                     
                                                         gainMult() {  let mult = new Decimal(1)
-                                                            mult = mult.mul(tmp.C.PowerEffect)
+                                                            if (player.C.unlocked)mult = mult.mul(tmp.C.PowerEffect)
                                                         
                                                             if(hasMilestone("C",4)) mult = mult.mul(2)   
                                                             if(hasMilestone("C",5)) mult = mult.mul(2)  
                                                             if (hasMilestone("C",8)) mult = mult.mul(10)
                                                             if (hasMilestone("C",9)) mult = mult.mul(10)  
                                                             if (hasMilestone("C",11)) mult = mult.mul(10) 
-                                                            mult = mult.mul(tmp.C.buyables[41].effect)
-                                                            mult = mult.mul(tmp.O.buyables[13].effect)                     // Returns your multiplier to your gain of the prestige resource.
+                                                            if (player.O.unlocked) mult = mult.mul(tmp.C.buyables[41].effect)
+                                                            if (player.F.unlocked) mult = mult.mul(tmp.O.buyables[13].effect)                     // Returns your multiplier to your gain of the prestige resource.
                                                             return mult     
                                                                  // Factor in any bonuses multiplying gain here.
                                                         },
@@ -936,7 +944,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return true
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",11)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",11)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             12: {
                                                                 title: "甲烷(CH₄)",
@@ -954,7 +969,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return true
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",12)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",12)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             13: {
                                                                 title: "乙烷(C₂H₆)",
@@ -972,7 +994,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return true
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",13)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",13)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             14: {
                                                                 title: "丙烷(C₃H₈)",
@@ -991,7 +1020,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return true
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",14)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",14)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             15: {
                                                                 title: "丁烷(C₄H₁₀)",
@@ -1010,7 +1046,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return true
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",15)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",15)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             21: {
                                                                 title: "一氧化碳(CO)",
@@ -1029,7 +1072,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return hasChallenge("F",12)
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",21)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",21)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             22: {
                                                                 title: "二氧化碳(CO₂)",
@@ -1047,7 +1097,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return hasChallenge("F",12)
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",22)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",22)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             23: {
                                                                 title: "三氧化碳(CO₃)",
@@ -1064,7 +1121,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return hasChallenge("F",21)
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",23)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",23)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             24: {
                                                                 title: "四氧化碳(CO₄)",
@@ -1081,7 +1145,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return hasChallenge("F",21)
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",24)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",24)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             25: {
                                                                 title: "五氧化碳(CO₅)",
@@ -1098,7 +1169,14 @@ addLayer("He", {
                                                                 unlocked(){
                                                                     return hasChallenge("F",22)
                                                                 },
-                                                                style: {"background-color":'#FF0000'},
+                                                                style: {
+                                                                    "background-color"() {
+                                                                        if (hasUpgrade("C",25)) color = "#00FF00"
+                                                                        if (!hasUpgrade("C",25)) color = "#FF0000"
+                                                                        return color
+                                                                        
+                                                                    }
+                                                                }
                                                             },
                                                             // Look in the upgrades docs to see what goes here!
                                                         },
@@ -1187,9 +1265,9 @@ addLayer("He", {
                                                                 if (hasMilestone("C",11)) eff = eff.mul(10)
                                                                 if (hasMilestone("C",7)) eff = eff.pow(1.15)
                                                                 if (player.O.unlocked) eff = eff.mul(tmp.O.buyables[12].effect)
-                                                                eff = eff.mul(tmp.C.buyables[41].effect)
+                                                                if (hasMilestone("C",10))eff = eff.mul(tmp.C.buyables[41].effect)
                                                                 if (inChallenge('F',11)) eff = eff.pow(0.8)       
-                                                                eff = eff.mul(buyableEffect("O",12))
+                                                                if (player.O.unlocked) eff = eff.mul(buyableEffect("O",12))
                                                                 if (hasMilestone("C",14)) eff = eff.mul((tmp.C.Tier).add(1).pow(hasMilestone('C',15)? 4 : 1)).mul((tmp.C.Rank).add(1).pow(hasMilestone('C',15)? 4 : 1))
                                                                 if (eff>1e50)eff = ((eff.div(1e50)).root(2)).mul(1e50)
                                                                 return eff
@@ -1375,7 +1453,7 @@ addLayer("He", {
                                                             requirementDescription: "石墨粉(1石墨能量)",
                                                             effectDescription: "里程碑的基础木炭能量获取提升20倍",
                                                             done() {
-                                                                return tmp.C.Tier.gte(2)
+                                                                return player.C.Cpower2.gte(1)
                                                              
                                                             }
                                                         },
@@ -1634,7 +1712,7 @@ addLayer("He", {
                                                     },
                                                     addLayer("N", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
-                                                            unlocked: true,                     // You can add more variables here to add them to your layer.
+                                                            unlocked: false,                     // You can add more variables here to add them to your layer.
                                                             points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
                                                         }},
                                                     
@@ -1643,7 +1721,7 @@ addLayer("He", {
                                                         symbol:"N",        // The name of this layer's main prestige resource.
                                                         row: 3,   
                                                         position: 1,                              // The row this layer is on (0 is the first row).
-                                                    
+                                                        branches:["Be"],
                                                         baseResource: "氢",                 // The name of the resource your prestige gain is based on.
                                                         baseAmount() { return player.H.points },  // A function to return the current amount of baseResource.
                                                     
@@ -1824,7 +1902,7 @@ addLayer("He", {
                                                     
                                                         requires: new Decimal(1e100),              // The amount of the base needed to  gain 1 of the prestige currency.
                                                                                                 // Also the amount required to unlock the layer.
-                                                    
+                                                        branches:["B"],
                                                         type: "normal",                         // Determines the formula used for calculating prestige currency.
                                                         exponent: 0.001,                          // "normal" prestige gain is (currency^exponent).
                                                         effect() { 
@@ -2032,6 +2110,7 @@ addLayer("He", {
                                                             points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
                                                         }},
                                                         symbol:"F",
+                                                        branches:["C"],
                                                         color: "#FFF68F",                       // The color for this layer, which affects many elements.
                                                         resource: "氟",            // The name of this layer's main prestige resource.
                                                         row: 3,
@@ -2261,12 +2340,11 @@ addLayer("He", {
                                                             },
                                                         },
                                                         
-                                                        layerShown() { return true },          // Returns a bool for if this layer's node should be visible in the tree.
+                                                        layerShown() { return player.O.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
                                                         resetsNothing(){return true},
                                                         upgrades: {
                                                             // Look in the upgrades docs to see what goes here!
                                                         },
-                                                        unlocked(){return player.O.unlocked},
                                                         tabFormat:{
                                                             "Main":{
                                                                 content:[ "main-display",
@@ -2297,7 +2375,8 @@ addLayer("He", {
                                                     
                                                         color: "#6600FF",                       // The color for this layer, which affects many elements.
                                                         resource: "氖",            // The name of this layer's main prestige resource.
-                                                        row: 4,                                 // The row this layer is on (0 is the first row).
+                                                        row: 4,      
+                                                        branches:["N","O","F"],                           // The row this layer is on (0 is the first row).
                                                     
                                                     
                                                         baseResource: "氢",                 // The name of the resource your prestige gain is based on.

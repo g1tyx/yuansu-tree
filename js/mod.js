@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Beta v9.1",
-	name: "死亡杀手",
+	num: "Beta v9.3",
+	name: "Ultimate死亡杀手",
 }
 
 let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
@@ -44,10 +44,14 @@ let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
 		- 降低氢层级升级价格。<br>
 		- 修复Bug。<br>
 		<h3>Beta v9.1“Super死亡杀手”</h3><br>
-		- 修复初始氢获取为NaN的bug。<br>`
+		- 修复初始氢获取为NaN的bug。<br>
+		<h3>Beta v9.2“Ultra死亡杀手”</h3><br>
+		- 修复初始碳获取为0的bug。<br>
+		<h3>Beta v9.3“Ultimate死亡杀手”</h3><br>
+		- 石墨升级style优化。<br>`
 		
 
-let winText = `恭喜你！你已经到达了Beta v9.0的结局！等待氖层级加入更多内容吧！`
+let winText = `恭喜你！你已经到达了Beta v9.3的结局！等待氖层级加入更多内容吧！`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
@@ -109,4 +113,5 @@ function fixOldSave(oldVersion){
 }
 var displayThings = [
 	"当前残局:1氖",
+	"*目前游戏处于Beta版本，如遇到bug或者平衡问题可联系qq2119542935*",
 ]
