@@ -78,10 +78,10 @@
         if(player.C.unlocked) mult = mult.mul(format(tmp.C.effect))
         if(player.N.unlocked) mult = mult.mul(format(tmp.N.Effect))
         if(hasMilestone("C",9)) mult = mult.mul(1e6)
-        if(player.O.unlocked) mult = mult.mul(format(player.O.OpowerEff2))
+        if(player.O.points.gte(10)) mult = mult.mul(format(player.O.OpowerEff2))
         if(hasMilestone("C",11)) mult = mult.mul(1e20)
-        if(player.O.unlocked) mult = mult.mul(buyableEffect("O",12))
-        if(player.F.unlocked) mult = mult.mul(buyableEffect("O",13))
+        if(getBuyableAmount("O",12).gte(1))mult = mult.mul(buyableEffect("O",12))
+        if(getBuyableAmount("O",13).gte(1)) mult = mult.mul(buyableEffect("O",13))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -915,8 +915,8 @@ addLayer("He", {
                                                             if (hasMilestone("C",8)) mult = mult.mul(10)
                                                             if (hasMilestone("C",9)) mult = mult.mul(10)  
                                                             if (hasMilestone("C",11)) mult = mult.mul(10) 
-                                                            if (player.O.unlocked) mult = mult.mul(tmp.C.buyables[41].effect)
-                                                            if (player.F.unlocked) mult = mult.mul(tmp.O.buyables[13].effect)                     // Returns your multiplier to your gain of the prestige resource.
+                                                            if (getBuyableAmount("C",41).gte(1)) mult = mult.mul(tmp.C.buyables[41].effect)
+                                                            if (getBuyableAmount("O",13).gte(1)) mult = mult.mul(tmp.O.buyables[13].effect)                     // Returns your multiplier to your gain of the prestige resource.
                                                             return mult     
                                                                  // Factor in any bonuses multiplying gain here.
                                                         },
@@ -1264,10 +1264,10 @@ addLayer("He", {
                                                                 if (hasMilestone("C",9)) eff = eff.mul(10)
                                                                 if (hasMilestone("C",11)) eff = eff.mul(10)
                                                                 if (hasMilestone("C",7)) eff = eff.pow(1.15)
-                                                                if (player.O.unlocked) eff = eff.mul(tmp.O.buyables[12].effect)
+                                                                if (getBuyableAmount("O",12).gte(1)) eff = eff.mul(tmp.O.buyables[12].effect)
                                                                 if (hasMilestone("C",10))eff = eff.mul(tmp.C.buyables[41].effect)
                                                                 if (inChallenge('F',11)) eff = eff.pow(0.8)       
-                                                                if (player.O.unlocked) eff = eff.mul(buyableEffect("O",12))
+                                                                if (getBuyableAmount("O",12).gte(1)) eff = eff.mul(buyableEffect("O",12))
                                                                 if (hasMilestone("C",14)) eff = eff.mul((tmp.C.Tier).add(1).pow(hasMilestone('C',15)? 4 : 1)).mul((tmp.C.Rank).add(1).pow(hasMilestone('C',15)? 4 : 1))
                                                                 if (eff>1e50)eff = ((eff.div(1e50)).root(2)).mul(1e50)
                                                                 return eff
@@ -1921,7 +1921,7 @@ addLayer("He", {
                                                                     gain() { return player.O.points.div(2).root(1.5) },
                                                                     effect() { 
                                                                         let amt = player[this.layer].buyables[this.id]
-                                                                        amt = amt.add(1).log10()  
+                                                                        amt = amt.add(1).log10().add(1)
                                                                     return amt
                                                                     },
                                                                     display() { // Everything else displayed in the buyable button after the title
@@ -1948,7 +1948,7 @@ addLayer("He", {
                                                                 12: {
                                                                     title: "氧化氢(H₂O)",
                                                                     gain() { return player.H.points.div(1e140).cbrt().times(player.O.Opower.div(2500)).root(3.5)},
-                                                                    effect() { return Decimal.pow(10, player[this.layer].buyables[this.id].log10().cbrt()).plus(1)},
+                                                                    effect() { return Decimal.pow(10, player[this.layer].buyables[this.id].add(1).log10().cbrt()).plus(1)},
                                                                     display() { // Everything else displayed in the buyable button after the title
                                                                         let data = tmp[this.layer].buyables[this.id]
                                                                         let display = ("献祭你所有的氢和氧气，获得 "+formatWhole(tmp[this.layer].buyables[this.id].gain)+" 氧化氢\n"+
