@@ -326,7 +326,7 @@ addLayer("He", {
                      points: new Decimal(0),
                  }},
                  
-                 effect(){let effect = player.Li.points.pow(2).add(1)
+                 effect(){let effect = player.Li.points.pow(2.5).add(1)
                    if (hasMilestone('Be',3)) effect = effect.pow(2)
                    return effect
                   } ,
@@ -426,8 +426,8 @@ addLayer("He", {
                                 11: {
                                     name: "轻型锂合金",
                                     challengeDescription: "基本粒子获取^0.8 . ",
-                                    canComplete(){return player.H.points.gte("1000000")},
-                                    goalDescription: "1,000,000氢",
+                                    canComplete(){return player.H.points.gte("100000")},
+                                    goalDescription: "100,000氢",
                                     rewardDescription(){return "氢获取^1.1。"},
                                   unlocked(){return true},
                                 },
@@ -873,9 +873,9 @@ addLayer("He", {
                                                         update(diff) {
                                                             if (hasMilestone("C",2)) player.C.Cpower = player.C.Cpower.add(new Decimal(1).times(diff))
                                                             if (hasMilestone("C",3)) player.C.Cpower = player.C.Cpower.add(((buyableEffect("C",21)).add(1)).times(diff))
-                                                            if (hasUpgrade("C",11)) buyBuyable("C",21)
-                                                            if (hasUpgrade("C",11)) buyBuyable("C",22)
-                                                            if (hasUpgrade("C",11)) buyBuyable("C",23)
+                                                            if ((hasUpgrade("C",11))&&(getBuyableAmount("C",21).gte(0))) buyBuyable("C",21)
+                                                            if ((hasUpgrade("C",11))&&(getBuyableAmount("C",21).gte(2))) buyBuyable("C",22)
+                                                            if ((hasUpgrade("C",11))&&(getBuyableAmount("C",21).gte(3))) buyBuyable("C",23)
                                                             if (hasUpgrade("C",15)) buyBuyable("C",11)
                                                             if (hasUpgrade("C",21)) buyBuyable("C",12)
                                                        
@@ -1258,7 +1258,7 @@ addLayer("He", {
                                                               effect(x) { 
                                                                 if (!hasUpgrade("C",12)) eff = new Decimal(x)
                                                                 if (hasUpgrade("C",12)) eff = new Decimal(x.add(getBuyableAmount("C",22)))
-                                                                eff = eff.mul(tmp.C.buyables[22].effect)
+                                                                if (getBuyableAmount("C",22).gte(1))eff = eff.mul(tmp.C.buyables[22].effect)
                                                                 if (hasUpgrade("N",11)) eff = eff.mul(upgradeEffect("N",11))
                                                                 if (hasMilestone("C",8)) eff = eff.mul(10)
                                                                 if (hasMilestone("C",9)) eff = eff.mul(10)
@@ -1360,9 +1360,10 @@ addLayer("He", {
                                                                 style: {"background-color":'#FF0000'},
                                                                 display() {return `提升所有石墨能量之前资源的获取速度。\n持有时间加速数量： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}石墨能量\n效果：时间速度*${format(this.effect())}`},
                                                                 effect(x) { let eff = new Decimal(1)
-                                                                  eff = eff.mul((new Decimal(1.5).add(layers["F"]["challenges"]["21"].rewardEffect())).pow(x))
-                                                                  eff = eff.mul(tmp.F.effect)
-                                                                  eff = eff.mul(new Decimal(2).pow((layers["F"]["challenges"]["12"].rewardEffect())))
+                                                                  if(!hasChallenge("F",21))eff = eff.mul((new Decimal(1.5).pow(x)))
+                                                                  if(hasChallenge("F",21))eff = eff.mul((new Decimal(1.5).add(layers["F"]["challenges"]["21"].rewardEffect())).pow(x))
+                                                                  if(player.F.points.gte(1))eff = eff.mul(tmp.F.effect)
+                                                                  if(hasChallenge("F",12))eff = eff.mul(new Decimal(2).pow((layers["F"]["challenges"]["12"].rewardEffect())))
                                                                   if (eff>1e50)eff = ((eff.div(1e50)).root(10)).mul(1e50)
                                                                   return eff
                                                                 }
@@ -1747,7 +1748,7 @@ addLayer("He", {
                                                                 description: "级别提升木炭能量获取",
                                                                 cost: new Decimal(2),
                                                                 effect(){ eff = new Decimal(1)
-                                                                    eff = eff.pow((tmp.C.Rank).pow(0.4))
+                                                                    eff = eff.add(((getBuyableAmount("C",11))).pow(0.4))
                                                                     if(inChallenge("F", 21)) eff = eff.pow(0)
                                                                 return eff
                                                             },

@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Beta v9.4",
-	name: "Ultimate^2死亡杀手",
+	num: "Beta v9.5",
+	name: "Ultimate死亡杀手^3",
 }
 
 let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
@@ -50,10 +50,12 @@ let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
 		<h3>Beta v9.3“Ultimate死亡杀手”</h3><br>
 		- 石墨升级style优化。<br>
 		<h3>Beta v9.4“Ultimate死亡杀手^2”</h3><br>
-		- 修复氧层级。<br>`
+		- 修复氧层级。<br>
+		<h3>Beta v9.5“Ultimate死亡杀手^3”</h3><br>
+		- 修复木炭能量获取bug和氮原子效果bug。<br>`
 		
 
-let winText = `恭喜你！你已经到达了Beta v9.4的结局！等待氖层级加入更多内容吧！`
+let winText = `恭喜你！你已经到达了Beta v9.5的结局！等待氖层级加入更多内容吧！`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
