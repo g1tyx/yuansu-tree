@@ -82,6 +82,14 @@
         if(hasMilestone("C",11)) mult = mult.mul(1e20)
         if(getBuyableAmount("O",12).gte(1))mult = mult.mul(buyableEffect("O",12))
         if(getBuyableAmount("O",13).gte(1)) mult = mult.mul(buyableEffect("O",13))
+        if(hasUpgrade("H",24)) mult = mult.mul(upgradeEffect("H",24))
+        if(getBuyableAmount("Be",11).gte(1)) mult = mult.mul(buyableEffect("Be",11))
+        if((getBuyableAmount("Ne",11).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",11).pow(1.3))
+        if((getBuyableAmount("Ne",21).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",21).pow(1.3))
+        if((getBuyableAmount("Ne",31).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",31).pow(1.3))
+        if((getBuyableAmount("Ne",41).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",41).pow(1.3))
+        if((getBuyableAmount("Ne",51).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",51).pow(1.3))
+        if((getBuyableAmount("Ne",61).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",61).pow(1.3))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -106,7 +114,9 @@
                 title: "氢原子(H)",
                 description: "提升3.00x基本粒子获取",
                 cost: new Decimal(2),
-                effect(){return new Decimal(3)},
+                effect(){ let eff = new Decimal(3)
+                if(hasUpgrade("H",21)) eff = eff.mul(upgradeEffect("H",21))
+            return eff},
                 effectDisplay(){return `x${format(this.effect())}`}
                 },
            
@@ -140,7 +150,57 @@
                             effectDisplay(){if (upgradeEffect("H",14)<1e80)return `x${format(this.effect())}`
                             if (upgradeEffect("H",14)>1e80) return `x${format(this.effect())}(已达软上限)`}
                 },
+            21: {
+                title: "氘气(D₂)",
+                description: "每提升1次阶层，氢原子效果翻4倍",
+                cost: new Decimal("1e660"),
+                effect(){
+                            let eff = new Decimal(4).pow(tmp.C.Tier)
+                         return eff
+                    },
+                        effectDisplay(){return `x${format(this.effect())}`
             },
+            unlocked(){return getBuyableAmount("Ne",11).gte(50)}
+        },
+        
+        22: {
+            title: "半重水(HDO)",
+            description: "每秒自动获得氧，数量为重置可获得氧的10000%",
+            cost: new Decimal("1e680"),
+            effect(){
+                        let eff = new Decimal(10000)
+                     return eff
+                },
+                    effectDisplay(){return `${format(this.effect())}%`
+        },
+        unlocked(){return getBuyableAmount("Ne",11).gte(70)}
+    },
+    23: {
+        title: "重水(T₂O)",
+        description: "氟效应翻倍且倍增不纯的氖气获取",
+        cost: new Decimal("1e700"),
+        effect(){
+                    let eff = new Decimal(2)
+                 return eff
+            },
+                effectDisplay(){return `x${format(this.effect())}`
+    },
+    unlocked(){return getBuyableAmount("Ne",11).gte(85)}
+    },
+
+24: {
+    title: "超重水(T₂O)",
+    description: "氖气以降低的效率加成自身获取，且以同样的效率提升基本粒子、氢、硼烷、碳、木炭能量、石墨能量、氧获取",
+    cost: new Decimal("1e800"),
+    effect(){
+                let eff = player.Ne.power.log10().sqrt()
+             return eff
+        },
+            effectDisplay(){return `x${format(this.effect())}`
+},
+unlocked(){return getBuyableAmount("Ne",11).gte(100)}
+},
+    },
             tabFormat:{
                 "Main":{
                     content:[ "main-display",
@@ -177,12 +237,21 @@ addLayer("He", {
             mult = new Decimal(1)
             if(hasUpgrade("He",14)) mult = mult.mul(upgradeEffect("He", 14))
             if(player.B.unlocked) mult = mult.mul(format(tmp.B.CpowerEffect))
+            if(hasUpgrade("H",24)) mult = mult.mul(upgradeEffect("H",24))
+            if(getBuyableAmount("Be",11).gte(1)) mult = mult.mul(buyableEffect("Be",11))
+            if((getBuyableAmount("Ne",11).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",11))
+        if((getBuyableAmount("Ne",21).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",21))
+        if((getBuyableAmount("Ne",31).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",31))
+        if((getBuyableAmount("Ne",41).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",41))
+        if((getBuyableAmount("Ne",51).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",51))
+        if((getBuyableAmount("Ne",61).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",61))
              return mult
                 },
                 branches:["H"],
                 gainExp() { // Calculate the exponent on main currency from bonuses
                     exp = new Decimal(1)
                     if (hasUpgrade("Li",13)) exp = exp.times(1.05)
+                    if (hasUpgrade("He",22)) exp = exp.add(0.2)
                     return exp
 
                 },
@@ -282,22 +351,47 @@ addLayer("He", {
                                 description: "氢提升氦获取",
                                 cost: new Decimal(50),
                                         effect(){return player.H.points.pow(0.1).add(1)},
-                                        effectDisplay(){return `x${format(this.effect())}`}
+                                        effectDisplay(){return `x${format(this.effect())}`},
+                            },
+                            21: {
+                                title: "(氦-6(He-6))",
+                                description: "上方升级效果平方且对木炭能量生效",
+                                cost: new Decimal(1e170),
+                                        effect(){return new Decimal(64)},
+                                        effectDisplay(){return `x${format(this.effect())}`},
+                                        unlocked(){return getBuyableAmount("Ne",21).gte(12)}
+                            },
+                            22: {
+                                title: "(氦-7(He-7))",
+                                description: "氦获取指数+0.2",
+                                cost: new Decimal(1e200),
+                                        effect(){return new Decimal(0.2)},
+                                        effectDisplay(){return `x${format(this.effect())}`},
+                                        unlocked(){return getBuyableAmount("Ne",21).gte(20)}
+                            },
+                            23: {
+                                title: "(氦-8(He-8))",
+                                description: "氦-3同时生效于氧获取且获得10个免费的氦-3",
+                                cost: new Decimal(1e230),
+                                        effect(){return new Decimal(10)},
+                                        effectDisplay(){return `+${format(this.effect())}`},
+                                        unlocked(){return getBuyableAmount("Ne",21).gte(30)}
                             },
                         },
                         buyables: {
                             11: {
                               title: "氦-3(He-3)",
-                              cost(x) {return new Decimal(15).mul(new Decimal(1.15).pow(x)).floor()},
+                              cost(x) {return new Decimal(1e250).mul(new Decimal(200).pow(x)).floor()},
                               canAfford() { return player.He.points.gte(this.cost())},
                               buy() {
                                  setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
                               },
-                              display() {return `(*不消耗氦)一种拥有巨大潜力的新型能源，在月球上有巨大储备。\n持有氦-3分子数目： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}氦\n效果：氢获取*${format(this.effect())}倍`},
+                              display() {return `(*不消耗氦)一种拥有巨大潜力的新型能源，在月球上有巨大储备。\n持有氦-3分子数目： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}氦\n效果：木炭能量、碳获取*${format(this.effect())}倍`},
                               effect(x) { 
-                                mult2 = new Decimal(x).add(1).pow(0.7)
+                                if(!hasUpgrade("He",23))mult2 = new Decimal(x).add(1).pow(0.7)
+                                if(hasUpgrade("He",23))mult2 = new Decimal((x).add(10)).add(1).pow(0.7)
                                 return new Decimal(mult2)},
-                              unlocked(){return false}
+                              unlocked(){return getBuyableAmount("Ne",21).gte(6)}
                             },
                         },
                         tabFormat:{
@@ -350,6 +444,7 @@ addLayer("He", {
             },
            gainMult() { // Calculate the multiplier for main currency from bonuses
              mult = new Decimal(1)
+             if (hasChallenge("Li",12)) mult = mult.mul(new Decimal(1.5).pow(challengeCompletions("Li",12)))
              
               return mult
                       },
@@ -364,7 +459,7 @@ addLayer("He", {
                         },
                         1: {
                             requirementDescription: "5号锂电池(3锂)",
-                            effectDescription: "解锁2个锂升级",
+                            effectDescription: "解锁3个锂升级",
                             done() {
                                 return player.Li.points.gte(3)
 
@@ -431,8 +526,43 @@ addLayer("He", {
                                     rewardDescription(){return "氢获取^1.1。"},
                                   unlocked(){return true},
                                 },
+                                12: {
+                                    name: "氮化锂(Li3N)",
+                                    currencyDisplayName: "木炭能量",
+                                    currencyInternalName: "Cpower",
+                                    currencyLayer: "C",
+                                    challengeDescription: function() {
+                                        let c11 = "时间速度效果/1e100"
+                                        if (inChallenge("Li", 12)) c11 = c11 + " (挑战中)"
+                                        if (challengeCompletions("Li", 12) == 1) c11 = c11 + " (已完成)"
+                                        c11 = c11 + "<br>分子数目:" + challengeCompletions("Li",12) + "/" + tmp.Li.challenges[12].completionLimit
+                                        return c11
+                                    },
+                                    goal(){
+                                        if (challengeCompletions("Li", 12) == 0) return Decimal.pow(10,100);
+                                        if (challengeCompletions("Li", 12) == 1) return Decimal.pow(10,113);
+                                        if (challengeCompletions("Li", 12) == 2) return Decimal.pow(10,130);
+                                    },
+                                    completionLimit:3 ,
+
+                                    rewardDescription: "提升锂获取",
+                                    rewardEffect() {
+                                        let c11 = new Decimal(1.5)
+                                        let c11c = new Decimal(challengeCompletions("Li", 12))
+                                        c11 = c11.pow(c11c)
+                                        return c11
+                                   },
+                                   rewardDisplay() {return "*"+format(tmp.Li.challenges[12].rewardEffect)+""},
+                                    onEnter() { 
+                                            startCChallenge()
+                                        
+                                    },
+                                    unlocked(){
+                                        return (getBuyableAmount("Ne",31).gte(5))
+                                    }
+                                },
                             },
-                            autoPrestige() { return (hasMilestone("B", 1))},
+                            autoPrestige() { return hasMilestone("B",1)},
                          
                                     
                                         upgrades: { // Streaming
@@ -461,6 +591,14 @@ addLayer("He", {
                                                     effectDisplay(){return `^${format(this.effect())}`},
                                                     unlocked(){return hasMilestone("Li",1)}
                                                     },
+                                                    14: {
+                                                        title: "氧化锂(LiO)",
+                                                        description: "前3个升级对木炭能量同样有效",
+                                                        cost: new Decimal(5),
+                                                        effect(){return new Decimal(1.05)},
+                                                        effectDisplay(){return `^${format(this.effect())}`},
+                                                        unlocked(){return getBuyableAmount("Ne",31).gte(10)}
+                                                        },
                 
  
                                                     },
@@ -559,6 +697,34 @@ addLayer("He", {
                                                                     },
                                                             },
                                                     },
+                                                    buyables: {
+                                                        11: {
+                                                          title: "氧化铍(BeO)",
+                                                          cost(x) {return new Decimal(250).add(new Decimal(2).pow(x)).floor()},
+                                                          canAfford() { return player.Be.points.gte(this.cost())},
+                                                          buy() {
+                                                             setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                          },
+                                                          display() {return `制作陶瓷，玻璃的无机材料。\n持有分子数目： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}铍\n效果：氢、氦获取*${format(this.effect())}倍`},
+                                                          effect(x) { 
+                                                            mult2 = new Decimal(x).add(1).log2().add(1).pow(4)
+                                                            return new Decimal(mult2)},
+                                                          unlocked(){return getBuyableAmount("Ne",41).gte(2)}
+                                                        },
+                                                        12: {
+                                                            title: "氟化铍(BeF2)",
+                                                            cost(x) {return new Decimal(265).add(new Decimal(3).pow(x)).floor()},
+                                                            canAfford() { return player.Be.points.gte(this.cost())},
+                                                            buy() {
+                                                               setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                            },
+                                                            display() {return `主要用于工业制作铍和铍合金。\n持有分子数目： ${format(getBuyableAmount(this.layer, this.id))}\n价格：${format(this.cost())}铍\n效果：石墨能量、硼烷获取*${format(this.effect())}倍`},
+                                                            effect(x) { 
+                                                              mult2 = new Decimal(x).add(1).log2().add(1).pow(10)
+                                                              return new Decimal(mult2)},
+                                                            unlocked(){return getBuyableAmount("Ne",41).gte(5)}
+                                                          },
+                                                    },
                                                     milestones: {
                                                         0: {
                                                             requirementDescription: "小型铍合金(1铍)",
@@ -604,6 +770,7 @@ addLayer("He", {
         "blank",
         "milestones",
         "upgrades",
+        "buyables",
         "challenges",
        
         "blank",
@@ -613,6 +780,8 @@ addLayer("He", {
                                                     effect(){
                                                      let eff = player.Be.points.pow(2.5).add(1)
                                                      if (hasUpgrade("N",14)) eff = eff.mul(upgradeEffect("N",14))
+                                                     if(hasUpgrade("H",24)) eff = eff.mul(upgradeEffect("H",24))
+                                                     if(hasUpgrade("B",21)) eff = eff.mul(player.B.points.pow(2.5).add(1))
                                                      return eff
 
                                                     },
@@ -630,7 +799,8 @@ addLayer("He", {
                                                             Apower: new Decimal(1),
                                                             Bpower: new Decimal(1),
                                                             Cpower: new Decimal(1), 
-                                                            Dpower: new Decimal(1),// "points" is the internal name for the main resource of the layer.
+                                                            Dpower: new Decimal(1),
+                                                            Epower: new Decimal(1)// "points" is the internal name for the main resource of the layer.
                                                         }},
                                                     
                                                         color: "#800000",                       // The color for this layer, which affects many elements.
@@ -752,6 +922,7 @@ addLayer("He", {
                                                             if (player.B.unlocked) player.B.Cpower = player.B.Cpower.plus(tmp.B.effect.times(diff).pow(0.6));
                                                             
                                                             if (player.B.unlocked) player.B.Dpower = player.B.Dpower.plus(tmp.B.effect.times(diff).pow(0.3));
+                                                            if (player.B.unlocked) player.B.Epower = player.B.Epower.plus(tmp.B.effect.times(diff).pow(0.15));
                                                         
                                                         
                                                         },
@@ -777,12 +948,19 @@ addLayer("He", {
                         ["display-text",
                         function() {return '你有 ' + format(player.B.Dpower) + ' 丁硼烷(B₄H₉，增幅前三种硼烷效果 '+format(tmp.B.DpowerEffect)+'x'},
                             {}],
+                            ["display-text",
+                        function() {return '你有 ' + format(player.B.Epower) + ' 戊硼烷(B₅H₁₁，增幅前四种硼烷效果 '+format(tmp.B.EpowerEffect)+'x'},
+                            {}],
 			"blank",
 			"milestones", "blank", "blank", "upgrades"],
                                                     
                                                         effect() {
                                                             let eff = new Decimal(4).pow(player.B.points).minus(1)
                                                             if (hasUpgrade("B",11)) eff = eff.pow(1.14514)
+                                                            if (hasUpgrade("B",22)) eff = eff.pow(1.14514)
+                                                            
+
+                                                            if (getBuyableAmount("Be",12)) eff = eff.mul(buyableEffect("Be",12))
                                                             return eff;
                                                         },
                                                         resetsNothing() { return true },
@@ -793,6 +971,7 @@ addLayer("He", {
                                                         if (!hasMilestone("B", 0)) Apowerbase = Apowerbase.pow(0)
                                                         if (hasUpgrade("B", 12)) Apowerbase = Apowerbase.pow(upgradeEffect("B",12))
                                                         Apowerbase = Apowerbase.mul(tmp.B.DpowerEffect)
+                                                        Apowerbase = Apowerbase.mul(tmp.B.EpowerEffect)
                                                         
 
                                                         return Apowerbase;
@@ -804,6 +983,7 @@ addLayer("He", {
                                                         if (!hasMilestone("B", 2)) Bpowerbase = Bpowerbase.pow(0)
                                                         if (hasUpgrade("B", 12)) Bpowerbase = Bpowerbase.pow(upgradeEffect("B",12))
                                                         Bpowerbase = Bpowerbase.mul(tmp.B.DpowerEffect)
+                                                        Bpowerbase = Bpowerbase.mul(tmp.B.EpowerEffect)
                                                         return Bpowerbase;
                                                             }    ,
                                                          CpowerEffect(){
@@ -812,16 +992,25 @@ addLayer("He", {
                                                                 if (!hasMilestone("B", 4)) Cpowerbase = Cpowerbase.pow(0)
                                                                 if (hasUpgrade("B", 12)) Cpowerbase = Cpowerbase.pow(upgradeEffect("B",12))
                                                                 Cpowerbase = Cpowerbase.mul(tmp.B.DpowerEffect)
+                                                                Cpowerbase = Cpowerbase.mul(tmp.B.EpowerEffect)
                                                                 return Cpowerbase;
                                                                 
                                                                 }     ,      
                                                         DpowerEffect(){
                                                                  let    Dpowerbase = new Decimal(2);
                                                                  Dpowerbase = Dpowerbase.mul(player.B.Dpower).pow(0.1).add(1)
+                                                                 Dpowerbase = Dpowerbase.mul(tmp.B.EpowerEffect)
                                                                  if (!hasMilestone("N",2))Dpowerbase = Dpowerbase.pow(0)
                                                                     return Dpowerbase;
                                                                 
-                                                        }       ,       
+                                                        }       ,  
+                                                        EpowerEffect(){
+                                                            let    Epowerbase = new Decimal(1.7);
+                                                            Epowerbase = Epowerbase.mul(player.B.Epower).pow(0.09).add(1)
+                                                            if (getBuyableAmount("Ne",51)<1) Epowerbase =Epowerbase.pow(0)
+                                                               return Epowerbase;
+                                                           
+                                                   }       ,      
                                                         upgrades: {
                                                             11: {
                                                             title: "无定形体硼(B)",
@@ -849,6 +1038,41 @@ addLayer("He", {
                                                                     effectDisplay(){return `^${format(this.effect())}`},
                                                                     unlocked(){return hasMilestone("B",2)}
                                                                     },
+                                                                    21: {
+                                                                        title: "碳化硼(B₄C)",
+                                                                        description: "每个硼提供1个免费铍",
+                                                                        cost: new Decimal(42),
+                                                                        effect(){return player.B.points},
+                                                                        effectDisplay(){return `+${format(this.effect())}`},
+                                                                        unlocked(){return getBuyableAmount("Ne",51).gte(2)}
+                                                                        },
+                                                                        22: {
+                                                                            title: "氮化硼(BN)",
+                                                                            description: "硼效应再次^1.14514",
+                                                                            cost: new Decimal(45),
+                                                                            effect(){return new Decimal(1.14514)},
+                                                                            effectDisplay(){return `^${format(this.effect())}`},
+                                                                            unlocked(){return getBuyableAmount("Ne",51).gte(4)}
+                                                                            },
+                                                                            23: {
+                                                                                title: "硼酸(H3BO3)",
+                                                                                description: "丁硼烷同样适用于氖气",
+                                                                                cost: new Decimal(46),
+                                                                                effect(){let eff = new Decimal(1)
+                                                                                    eff = eff.mul((tmp.B.DpowerEffect))
+                                                                                    if (hasUpgrade("B",24)) eff = eff.pow(2)
+                                                                                    return eff},
+                                                                                effectDisplay(){return `*${format(this.effect())}`},
+                                                                                unlocked(){return getBuyableAmount("Ne",51).gte(6)}
+                                                                                },
+                                                                                24: {
+                                                                                    title: "一氟化硼(BF)",
+                                                                                    description: "解锁一个新层级且前一个升级效果平方",
+                                                                                    cost: new Decimal(46),
+                                                                                    effect(){return new Decimal(2)},
+                                                                                    effectDisplay(){return `^${format(this.effect())}`},
+                                                                                    unlocked(){return getBuyableAmount("Ne",51).gte(8)}
+                                                                                    },
                                                             // Look in the upgrades docs to see what goes here!
                                                         },
                                                     },
@@ -916,7 +1140,8 @@ addLayer("He", {
                                                             if (hasMilestone("C",9)) mult = mult.mul(10)  
                                                             if (hasMilestone("C",11)) mult = mult.mul(10) 
                                                             if (getBuyableAmount("C",41).gte(1)) mult = mult.mul(tmp.C.buyables[41].effect)
-                                                            if (getBuyableAmount("O",13).gte(1)) mult = mult.mul(tmp.O.buyables[13].effect)                     // Returns your multiplier to your gain of the prestige resource.
+                                                            if (getBuyableAmount("O",13).gte(1)) mult = mult.mul(tmp.O.buyables[13].effect)
+                                                            if(hasUpgrade("H",24)) mult = mult.mul(upgradeEffect("H",24))                     // Returns your multiplier to your gain of the prestige resource.
                                                             return mult     
                                                                  // Factor in any bonuses multiplying gain here.
                                                         },
@@ -1269,6 +1494,10 @@ addLayer("He", {
                                                                 if (inChallenge('F',11)) eff = eff.pow(0.8)       
                                                                 if (getBuyableAmount("O",12).gte(1)) eff = eff.mul(buyableEffect("O",12))
                                                                 if (hasMilestone("C",14)) eff = eff.mul((tmp.C.Tier).add(1).pow(hasMilestone('C',15)? 4 : 1)).mul((tmp.C.Rank).add(1).pow(hasMilestone('C',15)? 4 : 1))
+                                                                if(hasUpgrade("H",24)) eff = eff.mul(upgradeEffect("H",24))
+                                                                if (getBuyableAmount("He",11).gte(1)) eff = eff.mul(buyableEffect("He",11))
+                                                                if(hasUpgrade("He",23)) eff = eff.mul(buyableEffect("He",11))
+                                                                if(hasUpgrade("Li",14)) eff = eff.pow(new Decimal(1.15))
                                                                 if (eff>1e50)eff = ((eff.div(1e50)).root(2)).mul(1e50)
                                                                 return eff
                                                             },
@@ -1321,6 +1550,8 @@ addLayer("He", {
                                                                     let gain = player.C.Cpower.div(1e16).pow(0.45)
                                                                 if (hasMilestone("C",12)) gain = gain.mul(tmp.C.Rank)
                                                                 if (hasMilestone("C",13)) gain = gain.mul(tmp.C.Tier)
+                                                                if(hasUpgrade("H",24)) gain = gain.mul(upgradeEffect("H",24))
+                                                                if(getBuyableAmount("Be",12).gte(1)) gain = gain.mul(buyableEffect("Be",12))
                                                                 return gain
                                                             },
                                                                 display() { // Everything else displayed in the buyable button after the title
@@ -1338,7 +1569,7 @@ addLayer("He", {
                                                                      setBuyableAmount(this.layer,22,new Decimal(0))
                                                                      setBuyableAmount(this.layer,23,new Decimal(0))
                                                                      player.C.Cpower2 = player.C.Cpower2.add(tmp[this.layer].buyables[this.id].gain)
-                                                                     player.C.Cpower = new Decimal(0)
+                                                                     player.C.Cpower = new Decimal(10)
                                                                      
                                                                 },
                                                                 buyMax() {
@@ -1364,6 +1595,7 @@ addLayer("He", {
                                                                   if(hasChallenge("F",21))eff = eff.mul((new Decimal(1.5).add(layers["F"]["challenges"]["21"].rewardEffect())).pow(x))
                                                                   if(player.F.points.gte(1))eff = eff.mul(tmp.F.effect)
                                                                   if(hasChallenge("F",12))eff = eff.mul(new Decimal(2).pow((layers["F"]["challenges"]["12"].rewardEffect())))
+                                                                  if(inChallenge("Li",12))eff = eff.div(1e100)
                                                                   if (eff>1e50)eff = ((eff.div(1e50)).root(10)).mul(1e50)
                                                                   return eff
                                                                 }
@@ -1498,6 +1730,24 @@ addLayer("He", {
                                                              
                                                             }
                                                         },
+                                                        16: {
+                                                            requirementDescription: "大石墨堆(36级别)",
+                                                            effectDescription: "氖气获取提升级别倍",
+                                                            done() {
+                                                                return tmp.C.Rank.gte(36)
+                                                             
+                                                            }
+                                                        },
+                                                        17: {
+                                                            requirementDescription: "特大石墨堆(42级别)",
+                                                            effectDescription: "氦-3效果同样适用于氖气",
+                                                            done() {
+                                                                return tmp.C.Rank.gte(42)
+                                                             
+                                                            }
+                                                        },
+                                                        
+
                                                     },
                                                         bars: {
                                                             NextCD: {
@@ -1909,6 +2159,7 @@ addLayer("He", {
                                                         effect() { 
                                                             let sol = player.O.points;
                                                             let eff = sol.plus(1);
+                                                            if (eff>1e100) eff = ((eff.div(1e100)).root(3000000)).mul(1e100)
                                                             player.O.effect = eff
                                                             return eff;
                                                         },
@@ -1949,7 +2200,9 @@ addLayer("He", {
                                                                 12: {
                                                                     title: "氧化氢(H₂O)",
                                                                     gain() { return player.H.points.div(1e140).cbrt().times(player.O.Opower.div(2500)).root(3.5)},
-                                                                    effect() { return Decimal.pow(10, player[this.layer].buyables[this.id].add(1).log10().cbrt()).plus(1)},
+                                                                    effect() { let eff = Decimal.pow(10, player[this.layer].buyables[this.id].add(1).log10().cbrt()).plus(1)
+                                                                        if (eff>1e10) eff = ((eff.div(1e10)).root(100)).mul(1e10)
+                                                                        return eff},
                                                                     display() { // Everything else displayed in the buyable button after the title
                                                                         let data = tmp[this.layer].buyables[this.id]
                                                                         let display = ("献祭你所有的氢和氧气，获得 "+formatWhole(tmp[this.layer].buyables[this.id].gain)+" 氧化氢\n"+
@@ -1976,6 +2229,7 @@ addLayer("He", {
                                                                     gain() { return player.H.points.div(1e260).cbrt().times(player.O.Opower.div(2e5)).root(6.5) },
                                                                     effect() { let eff = Decimal.pow(1.2,player[this.layer].buyables[this.id]).log10().add(1).pow(new Decimal(2.5).add(layers["F"]["challenges"]["22"].rewardEffect()))
                                                                 if (eff>1e50) eff = ((eff.div(1e50)).root(10)).mul(1e50)
+                                                                if (eff>1e60) eff = ((eff.div(1e60)).root(10000)).mul(1e60)
                                                             return eff},
                                                                     display() { // Everything else displayed in the buyable button after the title
                                                                         let data = tmp[this.layer].buyables[this.id]
@@ -2006,6 +2260,7 @@ addLayer("He", {
                                                         solEnEff2() {let eff2 = player.O.Opower.plus(1).pow(2)
                                                             if (eff2>1e40) eff2 = ((eff2.div(1e40)).root(10)).mul(1e40)
                                                             if (eff2>1e50) eff2 = ((eff2.div(1e50)).root(100)).mul(1e50)
+                                                            if (eff2>1e70) eff2 = ((eff2.div(1e70)).root(1e200)).mul(1e70)
                                                         player.O.OpowerEff2 = eff2
                                                         return eff2 },
                                                         Opowergain() { 
@@ -2020,12 +2275,14 @@ addLayer("He", {
                                                         gainMult() {            
                                                             let mult = new Decimal(1)
                                                             mult = mult.mul(((player.N.points).sub(12)).pow(2))    
-                                                            mult = mult.mul(buyableEffect("O",11))                // Returns your multiplier to your gain of the prestige resource.
+                                                            mult = mult.mul(buyableEffect("O",11))  
+                                                                          // Returns your multiplier to your gain of the prestige resource.
                                                             return mult              // Factor in any bonuses multiplying gain here.
                                                         },
                                                         gainExp() {                             // Returns the exponent to your gain of the prestige resource.
                                                             return new Decimal(1)
                                                         },
+                                                        passiveGeneration(){return hasUpgrade('H',22)? 100 : 0},
                                                     
                                                         layerShown() { return player.N.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
                                                     
@@ -2089,7 +2346,7 @@ addLayer("He", {
                                                                 function() {return '你的氧气使木炭能量增强器软上限削弱' + format(player.O.OpowerEff) + '%(上限为4%)'},
                                                                     {}],
                                                                     ["display-text",
-                                                                function() {return '同时也使氢获取倍增' + format(player.O.OpowerEff2) + 'x(当大于1e40时受到10次方根限制)(当大于1e50时受到100次方根限制)'},
+                                                                function() {return '同时也使氢获取倍增' + format(player.O.OpowerEff2) + 'x(当大于1e40时受到10次方根限制)(当大于1e50时受到100次方根限制)(上限为1e70)'},
                                                                     {}],
                                                             ["bar", "NextCD"],
                                                             ["infobox","introBox"],
@@ -2246,6 +2503,7 @@ addLayer("He", {
                                                                     let c11 = new Decimal(0)
                                                                     let c11c = new Decimal(challengeCompletions("F", 21))
                                                                     c11 = c11.add(c11c.mul(0.5))
+                                                                    if (player.Ne.unlocked) c11 = c11.mul(((tmp.Ne.effect).div(100)).add(1))
                                                                     return c11
                                                                },
                                                                rewardDisplay() {return format(tmp.F.challenges[21].rewardEffect)+"+(第1次完成该挑战时，解锁三氧化碳和四氧化碳！)"},
@@ -2281,6 +2539,7 @@ addLayer("He", {
                                                                     let c11 = new Decimal(1)
                                                                     let c11c = new Decimal(challengeCompletions("F", 22))
                                                                     c11 = c11.add(c11c.mul(new Decimal(0.15)))
+                                                                    if (player.Ne.unlocked) c11 = c11.mul(((tmp.Ne.effect).div(100)).add(1))
                                                                     return c11
                                                                },
                                                                rewardDisplay() {return format(tmp.F.challenges[22].rewardEffect)+"^(第1次完成该挑战时，解锁五氧化碳！)"},
@@ -2295,6 +2554,7 @@ addLayer("He", {
                                                         },
                                                         effect() { 
                                                             let eff = Decimal.sub(4, Decimal.div(4, player.F.points.plus(1).log10().plus(1))) 
+                                                            if(hasUpgrade("H",23)) eff = eff.mul(upgradeEffect("H",23))
                                                             player.F.OpowerEff = eff
                                                             return eff
                                                         },
@@ -2371,7 +2631,10 @@ addLayer("He", {
                                                     addLayer("Ne", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
                                                             unlocked: false,                     // You can add more variables here to add them to your layer.
-                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                            points: new Decimal(0), 
+                                                            power:new Decimal(0),
+                                                            Unpower:new Decimal(0),
+                                                            Time:new Decimal(0)           // "points" is the internal name for the main resource of the layer.
                                                         }},
                                                     
                                                         color: "#6600FF",                       // The color for this layer, which affects many elements.
@@ -2387,6 +2650,337 @@ addLayer("He", {
                                                                                                 // Also the amount required to unlock the layer.
                                                     
                                                         type: "static",                         // Determines the formula used for calculating prestige currency.
+                                                        exponent: 3,                          // "normal" prestige gain is (currency^exponent).
+                                                    
+                                                        gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
+                                                            return new Decimal(1)               // Factor in any bonuses multiplying gain here.
+                                                        },
+                                                        gainExp() {                             // Returns the exponent to your gain of the prestige resource.
+                                                            return new Decimal(1)
+                                                        },
+                                                        effect(){
+                                                        let eff = new Decimal(0)
+                                                        eff = eff.add((player.Ne.points.log2()).mul(15))
+                                                        return eff
+                                                        },
+                                                        effect2(){
+                                                            let eff = new Decimal(1)
+                                                            eff = eff.mul(new Decimal(2).pow(player.Ne.points)).sub(1)
+                                                            if(getBuyableAmount("Ne",11).gte(1)) eff = eff.mul(buyableEffect("Ne",11))
+                                                            if(getBuyableAmount("Ne",21).gte(1)) eff = eff.mul(buyableEffect("Ne",21))
+                                                            if(getBuyableAmount("Ne",31).gte(1)) eff = eff.mul(buyableEffect("Ne",31))
+                                                            if(getBuyableAmount("Ne",41).gte(1)) eff = eff.mul(buyableEffect("Ne",41))
+                                                            if(getBuyableAmount("Ne",51).gte(1)) eff = eff.mul(buyableEffect("Ne",51))
+                                                            if(getBuyableAmount("Ne",61).gte(1)) eff = eff.mul(buyableEffect("Ne",61))
+                                                            if(hasUpgrade("H",24)) eff = eff.mul(upgradeEffect("H",24))
+                                                            return eff
+                                                            },
+                                                        layerShown() { return player.F.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
+                                                        resetsNothing(){return true},
+                                                        upgrades: {
+                                                            // Look in the upgrades docs to see what goes here!
+                                                        },
+                                                        effectDescription() {
+                                                            return "倍增氟化锂、次氟酸、水、臭氧效果" + format(tmp.Ne.effect) + "%，"+"并且每秒生产氖气"+format(tmp.Ne.effect2)+""
+                                                        },
+                                                        infoboxes: {
+                                                            introBox: {
+                                                                    title: "10号元素-氖",
+                                                                    body(){
+                                                                            let a = "你已经收集了1e650个氢原子，足够聚变生成一个氖原子了！"
+                                                                            let b = "聚变氖原子不会消耗任何更低层级的资源。"
+                                                                            let c = "氖（Neon）（旧译作氝，讹作氞），是一种化学元素，化学符号是Ne，它的原子序数是10，"
+                                                                            let d = "是一种无色的稀有气体，把它放电时呈橙红色。"
+                                                                            let e = "氖最常用在霓虹灯之中。空气中含有少量氖。属零族元素，化学性质极不活泼，为稀有气体的成员之一。"
+                                                                            e += "氖至今仍没有一种确认存在的化合物，只发现了一些不稳定的阳离子和未经证实的水合物。 "
+                                                                            let f = "氖的核外电子排布式为1s22s22p6，属于稳定的8电子构型，同时氖原子较小，原子核对电子束缚力较强，导致氖元素的化学性质很稳定。"
+                                                                            let g = "氖发射的明亮的红橙色的光常被用来做霓虹灯做广告。其它应用有：" 
+                                                                            let h = "真空管、高压指示器、避雷针、电视机荧光屏、氦-氖激光，用作冷却液（液氖），用于高能物理研究，让氖充满火花室来探测微粒的行径，填充水银灯和钠蒸气灯等。"
+                                                                            let i = "试着通过重置将全部基本粒子、1-9号元素原子聚合成氖原子吧！"
+                                                    
+                                                                            return a + b + c + " " + d + e + f + g + h + i
+                                                                    },
+                                                                    
+                                                            },
+                                                        },
+                                                        buyables:
+                                                        {
+                                                            11: {
+                                                                unlocked(){return player.Ne.points.gte(1)},
+                                                              title: "濒临损坏的氖光管<br>*电量达到50%、70%、85%、100%时，解锁1个氢升级",
+                                                              cost(x) {if ((getBuyableAmount(this.layer,this.id))<100000) return new Decimal(10).mul(new Decimal(1.12).pow(x))
+                                                              },
+                                                              canAfford() { return player.Ne.power.gte(this.cost())},
+                                                              autoed(){return hasUpgrade("C",11)},
+                                                              buy() {
+                                                                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                                 player[this.layer].power = player[this.layer].power.sub(tmp[this.layer].buyables[this.id].cost)
+                                                              },
+                                                              display() {return `\n电量： ${format(getBuyableAmount(this.layer, this.id))}%\n充电消耗：${format(this.cost())}氖气\n效果：将你的不纯的氖气获取乘以x${format(this.effect())}倍`},
+                                                              effect(x) { 
+                                                                eff = new Decimal(x).add(1)
+                                                                return eff
+                                                            },
+                                                            style() { return {'background-color': "#220033", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-radius': "25px", height: "100px", width: "600px"}},
+                                                        },
+                                                        21: {
+                                                            unlocked(){return player.Ne.points.gte(3)},
+                                                          title: "黯淡的氖光管<br>*电量达到6%时，解锁1个氢可购买;电量达到12%、20%、30%时，解锁1个氦升级",
+                                                          cost(x) {return new Decimal(15000).mul(new Decimal(1.2).pow(x))},
+                                                          canAfford() { return player.Ne.power.gte(this.cost())},
+                                                          autoed(){return hasUpgrade("C",11)},
+                                                          buy() {
+                                                             setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                             player[this.layer].power = player[this.layer].power.sub(tmp[this.layer].buyables[this.id].cost)
+                                                          },
+                                                          display() {return `\n电量： ${format(getBuyableAmount(this.layer, this.id))}%\n充电消耗：${format(this.cost())}氖气\n效果：将你的不纯的氖气获取乘以x${format(this.effect())}倍`},
+                                                          effect(x) { 
+                                                            eff = new Decimal(x).pow(2).add(1)
+                                                            return eff
+                                                        },
+                                                        style() { return {'background-color': "#440066", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-radius': "25px", height: "100px", width: "600px"}},
+                                                    },
+                                                    31: {
+                                                        unlocked(){return player.Ne.points.gte(5)},
+                                                      title: "平凡的氖光管<br>*电量达到5%时，解锁1个锂挑战；电量达到10%时，解锁1个锂升级",
+                                                      cost(x) {return new Decimal(200000).mul(new Decimal(3).pow(x))},
+                                                      canAfford() { return player.Ne.power.gte(this.cost())},
+                                                      autoed(){return hasUpgrade("C",11)},
+                                                      buy() {
+                                                         setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                         player[this.layer].power = player[this.layer].power.sub(tmp[this.layer].buyables[this.id].cost)
+                                                      },
+                                                      display() {return `\n电量： ${format(getBuyableAmount(this.layer, this.id))}%\n充电消耗：${format(this.cost())}氖气\n效果：将你的不纯的氖气获取乘以x${format(this.effect())}倍`},
+                                                      effect(x) { 
+                                                        eff = new Decimal(x).pow(3).add(1)
+                                                        return eff
+                                                    },
+                                                    style() { return {'background-color': "#550099", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-radius': "25px", height: "100px", width: "600px"}},
+                                                },
+                                                41: {
+                                                    unlocked(){return player.Ne.points.gte(8)},
+                                                  title: "明亮的氖光管<br>*电量达到2%、5%时，解锁1个铍可购买",
+                                                  cost(x) {return new Decimal(150000000).mul(new Decimal(20).pow(x))},
+                                                  canAfford() { return player.Ne.power.gte(this.cost())},
+                                                  autoed(){return hasUpgrade("C",11)},
+                                                  buy() {
+                                                     setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                     player[this.layer].power = player[this.layer].power.sub(tmp[this.layer].buyables[this.id].cost)
+                                                  },
+                                                  display() {return `\n电量： ${format(getBuyableAmount(this.layer, this.id))}%\n充电消耗：${format(this.cost())}氖气\n效果：将你的不纯的氖气获取乘以x${format(this.effect())}倍`},
+                                                  effect(x) { 
+                                                    eff = new Decimal(x).pow(4).add(1)
+                                                    return eff
+                                                  },
+                                                style() { return {'background-color': "#6600AA", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-radius': "25px", height: "100px", width: "600px"}},
+                                                },
+                                                51: {
+                                                    unlocked(){return player.Ne.points.gte(9)},
+                                                  title: "超亮的氖光管<br>*电量达到1%时，解锁戊硼烷；电量达到2%，4%，6%，8%时解锁1个硼升级",
+                                                  cost(x) {return new Decimal(12000000000).mul(new Decimal(120).pow(x))},
+                                                  canAfford() { return player.Ne.power.gte(this.cost())},
+                                                  autoed(){return hasUpgrade("C",11)},
+                                                  buy() {
+                                                     setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                     player[this.layer].power = player[this.layer].power.sub(tmp[this.layer].buyables[this.id].cost)
+                                                  },
+                                                  display() {return `\n电量： ${format(getBuyableAmount(this.layer, this.id))}%\n充电消耗：${format(this.cost())}氖气\n效果：将你的不纯的氖气获取乘以x${format(this.effect())}倍`},
+                                                  effect(x) { 
+                                                    eff = new Decimal(x).pow(5).add(1)
+                                                    return eff
+                                                },
+                                                style() { return {'background-color': "#8800DD", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-radius': "25px", height: "100px", width: "600px"}},
+                                            },
+                                                61: {
+                                                    unlocked(){return player.Ne.points.gte(10)},
+                                                  title: "闪瞎双眼的氖光管<br>*电量达到30%时，解锁碳60能量！",
+                                                  cost(x) {return new Decimal(6.2e12).mul(new Decimal(413).pow(x))},
+                                                  canAfford() { return player.Ne.power.gte(this.cost())},
+                                                  autoed(){return hasUpgrade("C",11)},
+                                                  buy() {
+                                                     setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                     player[this.layer].power = player[this.layer].power.sub(tmp[this.layer].buyables[this.id].cost)
+                                                  },
+                                                  display() {return `\n电量： ${format(getBuyableAmount(this.layer, this.id))}%\n充电消耗：${format(this.cost())}氖气\n效果：将你的不纯的氖气获取乘以x${format(this.effect())}倍`},
+                                                  effect(x) { 
+                                                    eff = new Decimal(x).pow(6).add(1)
+                                                    return eff
+                                                },
+                                                style() { return {'background-color': "#9900FF", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-radius': "25px", height: "100px", width: "600px"}},
+                                            },
+                                                71: {
+                                                    title: "氖气提纯",
+                                                    gain() { 
+                                                        let gain = player.Ne.Unpower.div(10).pow(0.5)
+                                                    if(hasUpgrade("H",24)) gain = gain.mul(upgradeEffect("H",24))
+                                                    gain = gain.mul(player.Ne.Time.mul(0.05))
+                                                    if(hasMilestone("C",16)) gain = gain.mul(tmp.C.Rank)
+                                                    if(hasMilestone("C",17)) gain = gain.mul(buyableEffect("He",11))
+                                                    if(hasUpgrade("B",23)) gain = gain.mul(upgradeEffect("B",23))
+                                                    return gain
+                                                },
+                                                    display() { // Everything else displayed in the buyable button after the title
+                                                        let data = tmp[this.layer].buyables[this.id]
+                                                        let display = ("消耗你所有的不纯的氖气和30%氧，获得"+formatWhole(tmp[this.layer].buyables[this.id].gain)+"氖气\n"+
+                                                        "需要: 10氖\n"+
+                                                        "提纯效率：^0.5(tips:氖气提纯间隔时间的0.05倍将会作为氖气提纯量的乘数)\n")
+                                                        return display;
+                                                    },
+                                                    unlocked() { return true }, 
+                                                    canAfford() { return true},
+                                                    buy() { 
+
+                                                         player.Ne.power = player.Ne.power.add(tmp[this.layer].buyables[this.id].gain)
+                                                         player.Ne.Unpower = new Decimal(0)
+                                                         player.O.power = player.O.power.mul(0.7)
+                                                         
+                                                    },
+                                                    buyMax() {
+                                                        // I'll do this later ehehe
+                                                    },
+                                                    style() { return {'background-color': "#999999", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-radius': "25px", height: "100px", width: "300px"}},
+                                                    autoed() { return false},
+                                                },
+                                                    
+                                                
+
+                                                        },
+                                                        milestones:{
+                                                            0: {
+                                                                requirementDescription: "小氖气集气瓶(1氖)",
+                                                                effectDescription: "解锁一种新的氖管",
+                                                                done() {
+                                                                    return player.Ne.points.gte(1)
+                                                                }
+                                                            },
+                                                            1: {
+                                                                requirementDescription: "氖气集气瓶(3氖)",
+                                                                effectDescription: "再次解锁一种新的氖管",
+                                                                done() {
+                                                                    return player.Ne.points.gte(3)
+                                                                }
+                                                            },
+                                                            2: {
+                                                                requirementDescription: "大氖气集气瓶(5氖)",
+                                                                effectDescription: "再次解锁一种新的氖管",
+                                                                done() {
+                                                                    return player.Ne.points.gte(5)
+                                                                }
+                                                            },
+                                                            3: {
+                                                                requirementDescription: "特大氖气集气瓶(濒临损坏的氖光管 充电75%)",
+                                                                effectDescription: "所有氖光管以提升的效率倍增氢获取",
+                                                                done() {
+                                                                    return getBuyableAmount("Ne",11).gte(75)
+                                                                }
+                                                            },
+                                                            4: {
+                                                                requirementDescription: "巨氖气集气瓶(8氖)",
+                                                                effectDescription: "再次解锁一种新的氖管",
+                                                                done() {
+                                                                    return player.Ne.points.gte(8)
+                                                                }
+                                                            },
+                                                            5: {
+                                                                requirementDescription: "特巨氖气集气瓶(黯淡的氖光管 充电90%)",
+                                                                effectDescription: "所有氖光管的效率倍增氦获取",
+                                                                done() {
+                                                                    return getBuyableAmount("Ne",21).gte(90)
+                                                                }
+                                                            },
+                                                            6: {
+                                                                requirementDescription: "小型工业氖气罐(9氖)",
+                                                                effectDescription: "再次解锁一种新的氖管",
+                                                                done() {
+                                                                    return player.Ne.points.gte(9)
+                                                                }
+                                                            },
+                                                            7: {
+                                                                requirementDescription: "工业氖气罐(10氖)",
+                                                                effectDescription: "解锁最后一种新的氖管",
+                                                                done() {
+                                                                    return player.Ne.points.gte(10)
+                                                                }
+                                                            },
+
+
+                                                        },
+                                                        tabFormat:{
+                                                            "Mult":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                            ["display-text",
+                                                                function() {return '你的不纯的氖气是<h2 style=color:#3300FF;text-shadow:0px 0px 10px;>' + format(player.Ne.Unpower) + '<h2>'},
+                                                                    {}],
+                                                            ["display-text",
+                                                                function() {return '你的氖气是<h2 style=color:#6611FF;text-shadow:0px 0px 10px;>' + format(player.Ne.power) + '<h2>'},
+                                                                    {}],
+                                                            "challenges",
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+            "buyables",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    },
+                                                    "Milestones":{
+                                                        content:[ "main-display",
+                                                        "prestige-button",
+                                                        "blank",
+                                                        "milestones"]    
+                                                    }
+                                                        },
+                                                        update(diff) {
+                                                            if (player.Ne.unlocked) player.Ne.Unpower = player.Ne.Unpower.plus(tmp.Ne.effect2.times(diff).pow(1));
+                                                            if (player.Ne.unlocked) player.Ne.Time = player.Ne.Time.plus(diff)
+                                                        },
+                                                        bars: {
+                                                            NextCD: {
+                                                                direction: RIGHT,
+                                                                width: 700,
+                                                                height: 30,
+                                                                fillStyle: {'background-color' : "#f0840c"},
+                                                                req() {
+                                                                    let req =new Decimal("1e950")
+                                                                    return req
+                                                                },
+                                                                display() {
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let r = "到达" + format(this.req()) + " 氢以解锁下一种元素. (" + format(f.log10().div(this.req().log10()).mul(100).min(100)) + "%)"
+                                                                    return r
+                                                                },
+                                                                progress() { 
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let p = f.log10().div(this.req().log10())
+                                                                    return p
+                                                                },
+                                                            },
+                                                        },
+                                                    })
+                                                    addLayer("Na", {
+                                                        startData() { return {                  // startData is a function that returns default data for a layer. 
+                                                            unlocked: true,                     // You can add more variables here to add them to your layer.
+                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                        }},
+                                                    
+                                                        color: "#F0840C",                       // The color for this layer, which affects many elements.
+                                                        resource: "钠",
+                                                        symbol:"Na",
+                                                        position:1,            // The name of this layer's main prestige resource.
+                                                        row: 5,                              // The row this layer is on (0 is the first row).
+                                                    
+                                                        baseResource: "氢",                 // The name of the resource your prestige gain is based on.
+                                                        baseAmount() { return player.H.points },  // A function to return the current amount of baseResource.
+                                                    
+                                                        requires: new Decimal("1e950"),              // The amount of the base needed to  gain 1 of the prestige currency.
+                                                        resetsNothing(){return true},                                    // Also the amount required to unlock the layer.
+                                                        branches:["Ne"],
+                                                        type: "static",                         // Determines the formula used for calculating prestige currency.
                                                         exponent: 5,                          // "normal" prestige gain is (currency^exponent).
                                                     
                                                         gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
@@ -2396,8 +2990,8 @@ addLayer("He", {
                                                             return new Decimal(1)
                                                         },
                                                     
-                                                        layerShown() { return player.F.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
-                                                        resetsNothing(){return true},
+                                                        layerShown() { return hasUpgrade("B",24) },          // Returns a bool for if this layer's node should be visible in the tree.
+                                                    
                                                         upgrades: {
                                                             // Look in the upgrades docs to see what goes here!
                                                         },
@@ -2412,3 +3006,515 @@ addLayer("He", {
                                                         player.C.buyables[22] = new Decimal(0)
                                                         player.C.buyables[23] = new Decimal(0)
                                                     }
+                                                    addLayer("A", {
+                                                        symbol:"A1",
+                                                        startData() { return {
+                                                            unlocked: true,
+                                                            Goals:new Decimal(0)
+                                                        }},
+                                                        color: "red",
+                                                        row: "side",
+                                                        layerShown() {return true}, 
+                                                        tooltip() { // Optional, tooltip displays when the layer is locked
+                                                            return ("第一周期成就")
+                                                        },
+                                                        achievements: {
+                                                            11: {
+                                                                name: "氢",
+                                                                done() { return player.H.points.gte(1) }
+                                                            ,
+                                                            onComplete() { player.A.Goals = player.A.Goals.add(1) },
+                                                                tooltip: "获得1氢。(完成后+1成就点数)",
+                                                            },
+                                                            12: {
+                                                                name: "阴阳？",
+                                                                done() { return hasUpgrade("H",12)&&hasUpgrade("H",13) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(1) },
+                                                                tooltip: "解锁氢阴离子和氢阳离子。(+1成就点数)",
+                                                            },
+                                                            13: {
+                                                                name: "你需要一个储氢罐！",
+                                                                done() { return player.H.points.gte(150) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(1) },
+                                                                tooltip: "获得150氢。(+1成就点数)",
+                                                            },
+                                                            14: {
+                                                                name: "氢之轻",
+                                                                done() {return hasUpgrade("H",12)&&hasUpgrade("H",13)&&hasUpgrade("H",11)&&hasUpgrade("H",14) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(1) },
+                                                                tooltip: "购买全部氢升级。(+1成就点数)",
+                                                            },
+                                                            21: {
+                                                                name: "氦",
+                                                                done() {return player.He.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(2) },
+                                                                tooltip: "获得1氦。(+2成就点数)",
+                                                            },
+                                                            22: {
+                                                                name: "氦气罐",
+                                                                done() {return player.He.points.gte(5) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(2) },
+                                                                tooltip: "获得全部氦气里程碑。(+2成就点数)",
+                                                            },
+                                                            23: {
+                                                                name: "许多氦",
+                                                                done() {return player.He.points.gte(300) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(2) },
+                                                                tooltip: "获得300氦。(+2成就点数)",
+                                                            },
+                                                            24: {
+                                                                name: "地球大气层氦储量",
+                                                                done() {return player.He.points.gte(1e10) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(2) },
+                                                                tooltip: "获得1e10氦。(+2成就点数)",
+                                                            },
+                                                        },
+
+                                                        tabFormat:{
+                                                            "Achivements":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                                
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                            ["display-text",
+                                                            function() {return '成就点数：<h2 style=color:yellow;text-shadow:0px 0px 10px;>' + format(player.A.Goals) + '<h2>'},
+                                                                {}],
+                                                            "challenges",
+                                                            "achievements",
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+            "buyables",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    }},
+                                                   
+                                                    })
+                                                    addLayer("A2", {
+                                                        symbol:"A2",
+                                                        startData() { return {
+                                                            unlocked: true,
+                                                            Goals:new Decimal(0)
+                                                        }},
+                                                        color: "orange",
+                                                        row: "side",
+                                                        layerShown() {return player.Li.points.gte(1)}, 
+                                                        tooltip() { // Optional, tooltip displays when the layer is locked
+                                                            return ("第二周期成就")
+                                                        },
+                                                        achievements: {
+                                                            
+                                                            31: {
+                                                                name: "锂云石？",
+                                                                done() {return player.Li.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(3) },
+                                                                tooltip: "获得1锂。(+3成就点数)",
+                                                            },
+                                                            32: {
+                                                                name: "电池",
+                                                                done() {return player.Li.points.gte(3) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(3) },
+                                                                tooltip: "获得全部锂里程碑。(+3成就点数)",
+                                                            },
+                                                            33: {
+                                                                name: "锂与锂",
+                                                                done() {return hasUpgrade("Li",13) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(3) },
+                                                                tooltip: "获得3个锂升级。(+3成就点数)",
+                                                            },
+                                                            34: {
+                                                                name: "锂之活",
+                                                                done() {return hasChallenge("Li",11) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(3) },
+                                                                tooltip: "完成轻型锂合金。(+3成就点数)",
+                                                            },
+                                                            41: {
+                                                                name: "铍合金",
+                                                                done() {return player.Be.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(5) },
+                                                                tooltip: "获得1铍。(+5成就点数)",
+                                                            },
+                                                            42: {
+                                                                name: "铍没有升级吗？",
+                                                                done() {return player.Be.points.gte(2) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(5) },
+                                                                tooltip: "获得2铍。(+5成就点数)",
+                                                            },
+                                                            43: {
+                                                                name: "铍玻璃",
+                                                                done() {return player.Be.points.gte(4) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(5) },
+                                                                tooltip: "获得4铍。(+5成就点数)",
+                                                            },
+                                                            44: {
+                                                                name: "铍之毒",
+                                                                done() {return player.Be.points.gte(8) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(5) },
+                                                                tooltip: "获得8铍。(+5成就点数)",
+                                                            },
+                                                            51: {
+                                                                name: "硼",
+                                                                done() {return player.B.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(8) },
+                                                                tooltip: "获得1硼。(+8成就点数)",
+                                                            },
+                                                            52: {
+                                                                name: "硼晶体",
+                                                                done() {return player.B.points.gte(5) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(8) },
+                                                                tooltip: "获得5硼。(+8成就点数)",
+                                                            },
+                                                            53: {
+                                                                name: "你的“硼有”真多",
+                                                                done() {return player.B.points.gte(10) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(8) },
+                                                                tooltip: "获得10硼。(+8成就点数)",
+                                                            },
+                                                            54: {
+                                                                name: "硼之重(要)",
+                                                                done() {return hasUpgrade("B",24) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(8) },
+                                                                tooltip: "获得7个硼升级。(+8成就点数)",
+                                                            },
+                                                            61: {
+                                                                name: "碳",
+                                                                done() {return player.C.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(13) },
+                                                                tooltip: "获得1碳。(+13成就点数)",
+                                                            },
+                                                            62: {
+                                                                name: "木炭",
+                                                                done() {return player.C.Cpower.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(13) },
+                                                                tooltip: "获得1木炭能量。(+13成就点数)",
+                                                            },
+                                                            63: {
+                                                                name: "木炭增量？？？",
+                                                                done() {return tmp.C.Rank.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(13) },
+                                                                tooltip: "获得1级别。(+13成就点数)",
+                                                            },
+                                                            64: {
+                                                                name: "就是木炭增量啊",
+                                                                done() {return tmp.C.Tier.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(13) },
+                                                                tooltip: "获得1阶层。(+13成就点数)",
+                                                            },
+                                                            65: {
+                                                                name: "又一层？",
+                                                                done() {return player.C.Cpower2.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(13) },
+                                                                tooltip: "获得1石墨能量。(+13成就点数)",
+                                                            },
+                                                            66: {
+                                                                name: "石墨升级",
+                                                                done() {return hasUpgrade("C",15) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(13) },
+                                                                tooltip: "购买5个石墨升级。(+13成就点数)",
+                                                            },
+                                                            67: {
+                                                                name: "居然还有？",
+                                                                done() {return hasUpgrade("C",25) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(13) },
+                                                                tooltip: "购买10个石墨升级。(+13成就点数)",
+                                                            },
+                                                            68: {
+                                                                name: "碳之杂",
+                                                                done() {return player.C.points.gte(1e300) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(13) },
+                                                                tooltip: "获得1e300碳。(+13成就点数)",
+                                                            },
+                                                            71: {
+                                                                name: "氮",
+                                                                done() {return player.N.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(20) },
+                                                                tooltip: "获得1氮。(+20成就点数)",
+                                                            },
+                                                            72: {
+                                                                name: "氮氮氮...蛋？",
+                                                                done() {return player.N.points.gte(3) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(20) },
+                                                                tooltip: "获得3氮。(+20成就点数)",
+                                                            },
+                                                            73: {
+                                                                name: "氨",
+                                                                done() {return hasUpgrade("N",14) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(20) },
+                                                                tooltip: "解锁氨气。(+20成就点数)",
+                                                            },
+                                                            74: {
+                                                                name: "氮之淡",
+                                                                done() {return player.N.points.gte(10) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(20) },
+                                                                tooltip: "获得10氮。(+20成就点数)",
+                                                            },
+                                                            81: {
+                                                                name: "氧",
+                                                                done() {return player.O.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(32) },
+                                                                tooltip: "获得1氧。(+32成就点数)",
+                                                            },
+                                                            82: {
+                                                                name: "点击者",
+                                                                done() {return player.O.points.gte(10000) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(32) },
+                                                                tooltip: "获得10000氧。(+32成就点数)",
+                                                            },
+                                                            83: {
+                                                                name: "臭氧层",
+                                                                done() {return getBuyableAmount("O",11).gte(100000) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(32) },
+                                                                tooltip: "获得100000臭氧。(+32成就点数)",
+                                                            },
+                                                            84: {
+                                                                name: "江河湖海",
+                                                                done() {return getBuyableAmount("O",12).gte(1e30) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(32) },
+                                                                tooltip: "获得1e30氧化氢。(+32成就点数)",
+                                                            },
+                                                            85: {
+                                                                name: "消毒液",
+                                                                done() {return getBuyableAmount("O",13).gte(1e10) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(32) },
+                                                                tooltip: "获得1e10过氧化氢。(+32成就点数)",
+                                                            },
+                                                            91: {
+                                                                name: "氟",
+                                                                done() {return player.F.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(50) },
+                                                                tooltip: "获得1氟。(+50成就点数)",
+                                                            },
+                                                            92: {
+                                                                name: "嗯，这比制取氟单质简单多了",
+                                                                done() {return hasChallenge("F",12) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(50) },
+                                                                tooltip: "完成1次一氧化二氟。(+50成就点数)",
+                                                            },
+                                                            93: {
+                                                                name: "好多挑战",
+                                                                done() {return hasChallenge("F",21) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(50) },
+                                                                tooltip: "完成1次次氟酸。(+50成就点数)",
+                                                            },
+                                                            94: {
+                                                                name: "氟之腐",
+                                                                done() {return hasChallenge("F",22)},
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(50) },
+                                                                tooltip: "完成1次氟化锂。(+50成就点数)",
+                                                            },
+                                                            101: {
+                                                                name: "氖",
+                                                                done() {return player.Ne.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "获得1氖。(+100成就点数)",
+                                                            },
+                                                        },
+                                                        tabFormat:{
+                                                            "Achivements":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                                
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                            "challenges",
+                                                            "achievements",
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+            "buyables",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    }},
+                                                    })
+                                                    addLayer("A3", {
+                                                        symbol:"A3",
+                                                        startData() { return {
+                                                            unlocked: true,
+                                                            Goals:new Decimal(0)
+                                                        }},
+                                                        color: "yellow",
+                                                        row: "side",
+                                                        layerShown() {return player.Na.points.gte(1)}, 
+                                                        tooltip() { // Optional, tooltip displays when the layer is locked
+                                                            return ("第三周期成就")
+                                                        },
+                                                        achievements: {
+                                                          
+                                                        },
+
+                                                        tabFormat:{
+                                                            "Achivements":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                                
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                            "challenges",
+                                                            "achievements",
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+            "buyables",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    }},
+                                                   
+                                                    })
+                                                    addLayer("A4", {
+                                                        symbol:"A4",
+                                                        startData() { return {
+                                                            unlocked: true,
+                                                            Goals:new Decimal(0)
+                                                        }},
+                                                        color: "green",
+                                                        row: "side",
+                                                        layerShown() {return false}, 
+                                                        tooltip() { // Optional, tooltip displays when the layer is locked
+                                                            return ("第四周期成就")
+                                                        },
+                                                        achievements: {
+                                                          
+                                                        },
+
+                                                        tabFormat:{
+                                                            "Achivements":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                                
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                            "challenges",
+                                                            "achievements",
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+            "buyables",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    }},
+                                                   
+                                                    })
+                                                    addLayer("A5", {
+                                                        symbol:"A5",
+                                                        startData() { return {
+                                                            unlocked: true,
+                                                            Goals:new Decimal(0)
+                                                        }},
+                                                        color: "cyan",
+                                                        row: "side",
+                                                        layerShown() {return false}, 
+                                                        tooltip() { // Optional, tooltip displays when the layer is locked
+                                                            return ("第五周期成就")
+                                                        },
+                                                        achievements: {
+                                                          
+                                                        },
+
+                                                        tabFormat:{
+                                                            "Achivements":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                                
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                            "challenges",
+                                                            "achievements",
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+            "buyables",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    }},
+                                                   
+                                                    })
+                                                    addLayer("A6", {
+                                                        symbol:"A6",
+                                                        startData() { return {
+                                                            unlocked: true,
+                                                            Goals:new Decimal(0)
+                                                        }},
+                                                        color: "blue",
+                                                        row: "side",
+                                                        layerShown() {return false}, 
+                                                        tooltip() { // Optional, tooltip displays when the layer is locked
+                                                            return ("第六周期成就")
+                                                        },
+                                                        achievements: {
+                                                          
+                                                        },
+
+                                                        tabFormat:{
+                                                            "Achivements":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                                
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                            "challenges",
+                                                            "achievements",
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+            "buyables",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    }},
+                                                   
+                                                    })
+                                                    addLayer("A7", {
+                                                        symbol:"A7",
+                                                        startData() { return {
+                                                            unlocked: true,
+                                                            Goals:new Decimal(0)
+                                                        }},
+                                                        color: "purple",
+                                                        row: "side",
+                                                        layerShown() {return false}, 
+                                                        tooltip() { // Optional, tooltip displays when the layer is locked
+                                                            return ("第七周期成就")
+                                                        },
+                                                        achievements: {
+                                                          
+                                                        },
+
+                                                        tabFormat:{
+                                                            "Achivements":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                                
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                            "challenges",
+                                                            "achievements",
+                                                        "grid",
+
+            "blank",
+            "upgrades",
+            "milestones",
+            "buyables",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    }},
+                                                   
+                                                    })
