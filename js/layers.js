@@ -74,7 +74,7 @@
         if(hasUpgrade("H",14)) mult = mult.mul(player.H.points.add(1).pow(0.15))
         mult = mult.mul(format(tmp.Li.effect))
         mult = mult.mul(format(tmp.Be.effect))
-        if(player.B.unlocked) mult = mult.mul(format(tmp.B.BpowerEffect))
+        if(player.B.unlocked) mult = mult.mul(format(player.B.BpowerEffect))
         if(player.C.unlocked) mult = mult.mul(format(tmp.C.effect))
         if(player.N.unlocked) mult = mult.mul(format(tmp.N.Effect))
         if(hasMilestone("C",9)) mult = mult.mul(1e6)
@@ -90,6 +90,8 @@
         if((getBuyableAmount("Ne",41).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",41).pow(1.3))
         if((getBuyableAmount("Ne",51).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",51).pow(1.3))
         if((getBuyableAmount("Ne",61).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",61).pow(1.3))
+        if((player.Na.layer1).gte(1)) mult = mult.mul(player.Na.rewardEffect1)
+        if((getBuyableAmount("Na",32)).gte(1)) mult = mult.mul(buyableEffect("Na",32))
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -144,6 +146,7 @@
                     effect(){
                                 let eff = player.H.points.pow(0.15)
                             if(hasUpgrade("He",12)) eff = eff.mul(upgradeEffect("He",12))
+                            if((player.Na.layer2).gte(1)) eff = eff.mul(player.Na.rewardEffect2)
                             if (eff>1e80) eff = new Decimal(1e80).mul(eff.div(1e80).root(5))
                              return eff
                         },
@@ -155,7 +158,7 @@
                 description: "每提升1次阶层，氢原子效果翻4倍",
                 cost: new Decimal("1e660"),
                 effect(){
-                            let eff = new Decimal(4).pow(tmp.C.Tier)
+                            let eff = new Decimal(4).pow(player.C.Tier)
                          return eff
                     },
                         effectDisplay(){return `x${format(this.effect())}`
@@ -194,6 +197,7 @@
     cost: new Decimal("1e800"),
     effect(){
                 let eff = player.Ne.power.log10().sqrt()
+                if(hasUpgrade("Na",15)) eff = eff.mul(upgradeEffect("Na",15))
              return eff
         },
             effectDisplay(){return `x${format(this.effect())}`
@@ -236,7 +240,7 @@ addLayer("He", {
         gainMult() { // Calculate the multiplier for main currency from bonuses
             mult = new Decimal(1)
             if(hasUpgrade("He",14)) mult = mult.mul(upgradeEffect("He", 14))
-            if(player.B.unlocked) mult = mult.mul(format(tmp.B.CpowerEffect))
+            if(player.B.unlocked) mult = mult.mul(format(player.B.CpowerEffect))
             if(hasUpgrade("H",24)) mult = mult.mul(upgradeEffect("H",24))
             if(getBuyableAmount("Be",11).gte(1)) mult = mult.mul(buyableEffect("Be",11))
             if((getBuyableAmount("Ne",11).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",11))
@@ -245,6 +249,7 @@ addLayer("He", {
         if((getBuyableAmount("Ne",41).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",41))
         if((getBuyableAmount("Ne",51).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",51))
         if((getBuyableAmount("Ne",61).gte(1))&&(hasMilestone("Ne",5))) mult = mult.mul(buyableEffect("Ne",61))
+        if(player.Na.layer2.gte(11)) mult = mult.mul(player.Na.rewardEffect3)
              return mult
                 },
                 branches:["H"],
@@ -334,7 +339,7 @@ addLayer("He", {
                             description: "基本粒子提升氢气(H₂)效果",
                             cost: new Decimal(10),
                                     effect(){let eff = player.points.pow(0.2)
-                                    if (player.B.unlocked) eff = eff.mul(format(tmp.B.CpowerEffect))
+                                    if (player.B.unlocked) eff = eff.mul(format(player.B.CpowerEffect))
                                 return eff
                             },
                                     effectDisplay(){return `x${format(this.effect())}`}
@@ -390,6 +395,7 @@ addLayer("He", {
                               effect(x) { 
                                 if(!hasUpgrade("He",23))mult2 = new Decimal(x).add(1).pow(0.7)
                                 if(hasUpgrade("He",23))mult2 = new Decimal((x).add(10)).add(1).pow(0.7)
+                                if((player.Na.layer2).gte(11)) mult2 = mult2.mul(player.Na.rewardEffect3.pow(0.3))
                                 return new Decimal(mult2)},
                               unlocked(){return getBuyableAmount("Ne",21).gte(6)}
                             },
@@ -782,6 +788,7 @@ addLayer("He", {
                                                      if (hasUpgrade("N",14)) eff = eff.mul(upgradeEffect("N",14))
                                                      if(hasUpgrade("H",24)) eff = eff.mul(upgradeEffect("H",24))
                                                      if(hasUpgrade("B",21)) eff = eff.mul(player.B.points.pow(2.5).add(1))
+                                                     if(player.Na.layer3.gte(11)) eff = eff.mul(player.Na.rewardEffect4)
                                                      return eff
 
                                                     },
@@ -794,13 +801,19 @@ addLayer("He", {
                                                         
                                                     addLayer("B", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
-                                                            unlocked: false,                     // You can add more variables here to add them to your layer.
+                                                            unlocked: false,       
+                                                            effect: new Decimal(0),              // You can add more variables here to add them to your layer.
                                                             points: new Decimal(0),  
                                                             Apower: new Decimal(1),
                                                             Bpower: new Decimal(1),
                                                             Cpower: new Decimal(1), 
                                                             Dpower: new Decimal(1),
-                                                            Epower: new Decimal(1)// "points" is the internal name for the main resource of the layer.
+                                                            Epower: new Decimal(1),
+                                                            ApowerEffect: new Decimal(1),
+                                                            BpowerEffect: new Decimal(1),
+                                                            CpowerEffect: new Decimal(1),// "points" is the internal name for the main resource of the layer.
+                                                            DpowerEffect: new Decimal(1),
+                                                            EpowerEffect: new Decimal(1),
                                                         }},
                                                     
                                                         color: "#800000",                       // The color for this layer, which affects many elements.
@@ -914,15 +927,15 @@ addLayer("He", {
                                                         
                                                         
                                                         update(diff) {
-                                                            if (player.B.unlocked) player.B.Apower = player.B.Apower.plus(tmp.B.effect.times(diff).pow(1.2));
+                                                            if (player.B.unlocked) player.B.Apower = player.B.Apower.plus(player.B.effect.times(diff).pow(1.2));
                                                         
                                                             
-                                                            if (player.B.unlocked) player.B.Bpower = player.B.Bpower.plus(tmp.B.effect.times(diff).pow(0.9));
+                                                            if (player.B.unlocked) player.B.Bpower = player.B.Bpower.plus(player.B.effect.times(diff).pow(0.9));
                                                             
-                                                            if (player.B.unlocked) player.B.Cpower = player.B.Cpower.plus(tmp.B.effect.times(diff).pow(0.6));
+                                                            if (player.B.unlocked) player.B.Cpower = player.B.Cpower.plus(player.B.effect.times(diff).pow(0.6));
                                                             
-                                                            if (player.B.unlocked) player.B.Dpower = player.B.Dpower.plus(tmp.B.effect.times(diff).pow(0.3));
-                                                            if (player.B.unlocked) player.B.Epower = player.B.Epower.plus(tmp.B.effect.times(diff).pow(0.15));
+                                                            if (player.B.unlocked) player.B.Dpower = player.B.Dpower.plus(player.B.effect.times(diff).pow(0.3));
+                                                            if (player.B.unlocked) player.B.Epower = player.B.Epower.plus(player.B.effect.times(diff).pow(0.15));
                                                         
                                                         
                                                         },
@@ -934,22 +947,22 @@ addLayer("He", {
 			"blank",
             ["infobox", "introBox"],
             ["display-text",
-				function() {return '你有 ' + format(player.B.points) + ' 硼，每秒生产每种硼烷 '+format(tmp.B.effect)+''},
+				function() {return '你有 ' + format(player.B.points) + ' 硼，每秒生产每种硼烷 '+format(player.B.effect)+''},
 					{}],
 			["display-text",
-				function() {return '你有 ' + format(player.B.Apower) + ' 甲硼烷(BH₃，增幅基本粒子获取 '+format(tmp.B.ApowerEffect)+'x'},
+				function() {return '你有 ' + format(player.B.Apower) + ' 甲硼烷(BH₃，增幅基本粒子获取 '+format(player.B.ApowerEffect)+'x'},
 					{}],
             ["display-text",
-				function() {return '你有 ' + format(player.B.Bpower) + ' 乙硼烷(B₂H₅，增幅氢获取 '+format(tmp.B.BpowerEffect)+'x'},
+				function() {return '你有 ' + format(player.B.Bpower) + ' 乙硼烷(B₂H₅，增幅氢获取 '+format(player.B.BpowerEffect)+'x'},
 					{}],
                                         ["display-text",
-                    function() {return '你有 ' + format(player.B.Cpower) + ' 丙硼烷(B₃H₇，增幅氦获取与氢化氦效果 '+format(tmp.B.CpowerEffect)+'x'},
+                    function() {return '你有 ' + format(player.B.Cpower) + ' 丙硼烷(B₃H₇，增幅氦获取与氢化氦效果 '+format(player.B.CpowerEffect)+'x'},
                         {}],
                         ["display-text",
-                        function() {return '你有 ' + format(player.B.Dpower) + ' 丁硼烷(B₄H₉，增幅前三种硼烷效果 '+format(tmp.B.DpowerEffect)+'x'},
+                        function() {return '你有 ' + format(player.B.Dpower) + ' 丁硼烷(B₄H₉，增幅前三种硼烷效果 '+format(player.B.DpowerEffect)+'x'},
                             {}],
                             ["display-text",
-                        function() {return '你有 ' + format(player.B.Epower) + ' 戊硼烷(B₅H₁₁，增幅前四种硼烷效果 '+format(tmp.B.EpowerEffect)+'x'},
+                        function() {return '你有 ' + format(player.B.Epower) + ' 戊硼烷(B₅H₁₁，增幅前四种硼烷效果 '+format(player.B.EpowerEffect)+'x'},
                             {}],
 			"blank",
 			"milestones", "blank", "blank", "upgrades"],
@@ -961,6 +974,7 @@ addLayer("He", {
                                                             
 
                                                             if (getBuyableAmount("Be",12)) eff = eff.mul(buyableEffect("Be",12))
+                                                            player.B.effect = eff
                                                             return eff;
                                                         },
                                                         resetsNothing() { return true },
@@ -970,8 +984,9 @@ addLayer("He", {
                                                         Apowerbase = Apowerbase.mul(player.B.Apower).pow(0.4).add(1)
                                                         if (!hasMilestone("B", 0)) Apowerbase = Apowerbase.pow(0)
                                                         if (hasUpgrade("B", 12)) Apowerbase = Apowerbase.pow(upgradeEffect("B",12))
-                                                        Apowerbase = Apowerbase.mul(tmp.B.DpowerEffect)
-                                                        Apowerbase = Apowerbase.mul(tmp.B.EpowerEffect)
+                                                        Apowerbase = Apowerbase.mul(player.B.DpowerEffect)
+                                                        Apowerbase = Apowerbase.mul(player.B.EpowerEffect)
+                                                        player.B.ApowerEffect = Apowerbase
                                                         
 
                                                         return Apowerbase;
@@ -982,8 +997,9 @@ addLayer("He", {
                                                         Bpowerbase = Bpowerbase.mul(player.B.Bpower).pow(0.3).add(1)
                                                         if (!hasMilestone("B", 2)) Bpowerbase = Bpowerbase.pow(0)
                                                         if (hasUpgrade("B", 12)) Bpowerbase = Bpowerbase.pow(upgradeEffect("B",12))
-                                                        Bpowerbase = Bpowerbase.mul(tmp.B.DpowerEffect)
-                                                        Bpowerbase = Bpowerbase.mul(tmp.B.EpowerEffect)
+                                                        Bpowerbase = Bpowerbase.mul(player.B.DpowerEffect)
+                                                        Bpowerbase = Bpowerbase.mul(player.B.EpowerEffect)
+                                                        player.B.BpowerEffect = Bpowerbase
                                                         return Bpowerbase;
                                                             }    ,
                                                          CpowerEffect(){
@@ -991,16 +1007,19 @@ addLayer("He", {
                                                                 Cpowerbase = Cpowerbase.mul(player.B.Cpower).pow(0.2).add(1)
                                                                 if (!hasMilestone("B", 4)) Cpowerbase = Cpowerbase.pow(0)
                                                                 if (hasUpgrade("B", 12)) Cpowerbase = Cpowerbase.pow(upgradeEffect("B",12))
-                                                                Cpowerbase = Cpowerbase.mul(tmp.B.DpowerEffect)
-                                                                Cpowerbase = Cpowerbase.mul(tmp.B.EpowerEffect)
+                                                                Cpowerbase = Cpowerbase.mul(player.B.DpowerEffect)
+                                                                Cpowerbase = Cpowerbase.mul(player.B.EpowerEffect)
+                                                                player.B.CpowerEffect = Cpowerbase
                                                                 return Cpowerbase;
                                                                 
                                                                 }     ,      
                                                         DpowerEffect(){
                                                                  let    Dpowerbase = new Decimal(2);
                                                                  Dpowerbase = Dpowerbase.mul(player.B.Dpower).pow(0.1).add(1)
-                                                                 Dpowerbase = Dpowerbase.mul(tmp.B.EpowerEffect)
+                                                                 Dpowerbase = Dpowerbase.mul(player.B.EpowerEffect)
+                                                                 if (player.Na.layer3.gte(11)) Dpowerbase = Dpowerbase.mul(player.Na.rewardEffect4)
                                                                  if (!hasMilestone("N",2))Dpowerbase = Dpowerbase.pow(0)
+                                                                 player.B.DpowerEffect = Dpowerbase
                                                                     return Dpowerbase;
                                                                 
                                                         }       ,  
@@ -1059,7 +1078,7 @@ addLayer("He", {
                                                                                 description: "丁硼烷同样适用于氖气",
                                                                                 cost: new Decimal(46),
                                                                                 effect(){let eff = new Decimal(1)
-                                                                                    eff = eff.mul((tmp.B.DpowerEffect))
+                                                                                    eff = eff.mul((player.B.DpowerEffect))
                                                                                     if (hasUpgrade("B",24)) eff = eff.pow(2)
                                                                                     return eff},
                                                                                 effectDisplay(){return `*${format(this.effect())}`},
@@ -1106,8 +1125,10 @@ addLayer("He", {
                                                         
                                                         },
                                                         Cdim1(){return getBuyableAmount("C",21)},
-                                                        Rank(){return getBuyableAmount("C",11)},
-                                                        Tier(){return getBuyableAmount("C",12)},
+                                                        Rank(){player.C.Rank = getBuyableAmount("C",11)
+                                                            return getBuyableAmount("C",11)},
+                                                        Tier(){player.C.Tier = getBuyableAmount("C",12)
+                                                            return getBuyableAmount("C",12)},
                                                         PowerEffect(){let PowerEffect = new Decimal(1)
                                                             if (hasMilestone("C",2)) PowerEffect = (player.C.Cpower).pow(0.3).add(1)
                                                             if (hasUpgrade("N",12)) PowerEffect = PowerEffect.mul(upgradeEffect("N",12))
@@ -1450,11 +1471,11 @@ addLayer("He", {
                                                                   return new Decimal(eff)}
                                                               },
                                                               12: {
-                                                                unlocked(){return tmp.C.Rank.gte(5)},
+                                                                unlocked(){return player.C.Rank.gte(5)},
                                                                 title: "阶层",
                                                                 style: {"background-color":'#00FFFF'},
                                                                 cost(x) {return new Decimal(5).add(new Decimal(4).mul(x))},
-                                                                canAfford() { return tmp.C.Rank.gte(this.cost())},
+                                                                canAfford() { return player.C.Rank.gte(this.cost())},
                                                                 buy() {
                                                                    setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
                                                                    setBuyableAmount("C",11, new Decimal(0))
@@ -1493,11 +1514,12 @@ addLayer("He", {
                                                                 if (hasMilestone("C",10))eff = eff.mul(tmp.C.buyables[41].effect)
                                                                 if (inChallenge('F',11)) eff = eff.pow(0.8)       
                                                                 if (getBuyableAmount("O",12).gte(1)) eff = eff.mul(buyableEffect("O",12))
-                                                                if (hasMilestone("C",14)) eff = eff.mul((tmp.C.Tier).add(1).pow(hasMilestone('C',15)? 4 : 1)).mul((tmp.C.Rank).add(1).pow(hasMilestone('C',15)? 4 : 1))
+                                                                if (hasMilestone("C",14)) eff = eff.mul((player.C.Tier).add(1).pow(hasMilestone('C',15)? 4 : 1)).mul((player.C.Rank).add(1).pow(hasMilestone('C',15)? 4 : 1))
                                                                 if(hasUpgrade("H",24)) eff = eff.mul(upgradeEffect("H",24))
                                                                 if (getBuyableAmount("He",11).gte(1)) eff = eff.mul(buyableEffect("He",11))
                                                                 if(hasUpgrade("He",23)) eff = eff.mul(buyableEffect("He",11))
                                                                 if(hasUpgrade("Li",14)) eff = eff.pow(new Decimal(1.15))
+                                                                if((player.Na.layer4).gte(10)) eff = eff.mul(player.Na.rewardEffect5)
                                                                 if (eff>1e50)eff = ((eff.div(1e50)).root(2)).mul(1e50)
                                                                 return eff
                                                             },
@@ -1548,8 +1570,8 @@ addLayer("He", {
                                                                 title: "石墨能量",
                                                                 gain() { 
                                                                     let gain = player.C.Cpower.div(1e16).pow(0.45)
-                                                                if (hasMilestone("C",12)) gain = gain.mul(tmp.C.Rank)
-                                                                if (hasMilestone("C",13)) gain = gain.mul(tmp.C.Tier)
+                                                                if (hasMilestone("C",12)) gain = gain.mul(player.C.Rank)
+                                                                if (hasMilestone("C",13)) gain = gain.mul(player.C.Tier)
                                                                 if(hasUpgrade("H",24)) gain = gain.mul(upgradeEffect("H",24))
                                                                 if(getBuyableAmount("Be",12).gte(1)) gain = gain.mul(buyableEffect("Be",12))
                                                                 return gain
@@ -1596,6 +1618,7 @@ addLayer("He", {
                                                                   if(player.F.points.gte(1))eff = eff.mul(tmp.F.effect)
                                                                   if(hasChallenge("F",12))eff = eff.mul(new Decimal(2).pow((layers["F"]["challenges"]["12"].rewardEffect())))
                                                                   if(inChallenge("Li",12))eff = eff.div(1e100)
+                                                                  if((player.Na.layer4).gte(10)) eff = eff.mul(player.Na.rewardEffect5)
                                                                   if (eff>1e50)eff = ((eff.div(1e50)).root(10)).mul(1e50)
                                                                   return eff
                                                                 }
@@ -1636,7 +1659,7 @@ addLayer("He", {
                                                                 requirementDescription: "大型木炭罐子(2级别)",
                                                                 effectDescription: "双倍碳获取。",
                                                                 done() {
-                                                                    return tmp.C.Rank.gte(2)
+                                                                    return player.C.Rank.gte(2)
                                                                  
                                                                 }
                                                             },
@@ -1644,7 +1667,7 @@ addLayer("He", {
                                                                 requirementDescription: "木炭桶(3级别)",
                                                                 effectDescription: "再次双倍碳获取。",
                                                                 done() {
-                                                                    return tmp.C.Rank.gte(3)
+                                                                    return player.C.Rank.gte(3)
                                                                  
                                                                 }
                                                             },
@@ -1652,7 +1675,7 @@ addLayer("He", {
                                                                     requirementDescription: "小木炭堆(5级别)",
                                                                     effectDescription: "解锁阶层。",
                                                                     done() {
-                                                                        return tmp.C.Rank.gte(5)
+                                                                        return player.C.Rank.gte(5)
                                                                      
                                                                     }
                                                             },
@@ -1660,7 +1683,7 @@ addLayer("He", {
                                                                 requirementDescription: "木炭堆(1阶层)",
                                                                 effectDescription: "木炭能量获取^1.15。",
                                                                 done() {
-                                                                    return tmp.C.Tier.gte(1)
+                                                                    return player.C.Tier.gte(1)
                                                                  
                                                                 }
 
@@ -1670,7 +1693,7 @@ addLayer("He", {
                                                             requirementDescription: "大木炭堆(8级别)",
                                                             effectDescription: "碳和木炭能量获取*10",
                                                             done() {
-                                                                return tmp.C.Rank.gte(8)
+                                                                return player.C.Rank.gte(8)
                                                              
                                                             }
                                                         },
@@ -1678,7 +1701,7 @@ addLayer("He", {
                                                             requirementDescription: "特大型木炭堆(2阶层)",
                                                             effectDescription: "碳和木炭能量获取*10，氢获取*1e6",
                                                             done() {
-                                                                return tmp.C.Tier.gte(2)
+                                                                return player.C.Tier.gte(2)
                                                              
                                                             }
                                                         },
@@ -1694,7 +1717,7 @@ addLayer("He", {
                                                             requirementDescription: "石墨粒(3阶层)",
                                                             effectDescription: "碳和木炭能量获取*10，氢获取*1e20",
                                                             done() {
-                                                                return tmp.C.Tier.gte(3)
+                                                                return player.C.Tier.gte(3)
                                                              
                                                             }
                                                         },
@@ -1702,7 +1725,7 @@ addLayer("He", {
                                                             requirementDescription: "石墨罐子(15级别)",
                                                             effectDescription: "等级倍增石墨能量获取",
                                                             done() {
-                                                                return tmp.C.Rank.gte(15)
+                                                                return player.C.Rank.gte(15)
                                                              
                                                             }
                                                         },
@@ -1710,7 +1733,7 @@ addLayer("He", {
                                                             requirementDescription: "大石墨罐子(4阶层)",
                                                             effectDescription: "阶层倍增石墨能量获取",
                                                             done() {
-                                                                return tmp.C.Tier.gte(4)
+                                                                return player.C.Tier.gte(4)
                                                              
                                                             }
                                                         },
@@ -1718,7 +1741,7 @@ addLayer("He", {
                                                             requirementDescription: "小石墨堆(5阶层)",
                                                             effectDescription: "前两个里程碑同样适用于木炭能量",
                                                             done() {
-                                                                return tmp.C.Tier.gte(5)
+                                                                return player.C.Tier.gte(5)
                                                              
                                                             }
                                                         },
@@ -1726,7 +1749,7 @@ addLayer("He", {
                                                             requirementDescription: "石墨堆(8阶层)",
                                                             effectDescription: "前一个里程碑效果提升至4次方",
                                                             done() {
-                                                                return tmp.C.Tier.gte(8)
+                                                                return player.C.Tier.gte(8)
                                                              
                                                             }
                                                         },
@@ -1734,7 +1757,7 @@ addLayer("He", {
                                                             requirementDescription: "大石墨堆(36级别)",
                                                             effectDescription: "氖气获取提升级别倍",
                                                             done() {
-                                                                return tmp.C.Rank.gte(36)
+                                                                return player.C.Rank.gte(36)
                                                              
                                                             }
                                                         },
@@ -1742,7 +1765,7 @@ addLayer("He", {
                                                             requirementDescription: "特大石墨堆(42级别)",
                                                             effectDescription: "氦-3效果同样适用于氖气",
                                                             done() {
-                                                                return tmp.C.Rank.gte(42)
+                                                                return player.C.Rank.gte(42)
                                                              
                                                             }
                                                         },
@@ -2000,6 +2023,7 @@ addLayer("He", {
                                                                 effect(){ eff = new Decimal(1)
                                                                     eff = eff.add(((getBuyableAmount("C",11))).pow(0.4))
                                                                     if(inChallenge("F", 21)) eff = eff.pow(0)
+                                                                    if(player.Na.rewardEffect6.gte(2)) eff = eff.mul(player.Na.rewardEffect6)
                                                                 return eff
                                                             },
                                                                 effectDisplay(){return `*${format(this.effect())}`},
@@ -2027,7 +2051,9 @@ addLayer("He", {
                                                                             title: "氨气(NH₃)",
                                                                             description: "丁硼烷以降低的速度提升全部硼烷获取。",
                                                                             cost: new Decimal(6),
-                                                                            effect(){return (player.B.Dpower).pow(0.1)},
+                                                                            effect(){ let eff = (player.B.Dpower).pow(0.1)
+                                                                                if(player.Na.rewardEffect6.gte(2)) eff = eff.mul(player.Na.rewardEffect6)
+                                                                                return eff},
                                                                             effectDisplay(){return `*${format(this.effect())}`},
                                                                             unlocked(){return hasMilestone("N",1)}
                                                                             },
@@ -2503,7 +2529,7 @@ addLayer("He", {
                                                                     let c11 = new Decimal(0)
                                                                     let c11c = new Decimal(challengeCompletions("F", 21))
                                                                     c11 = c11.add(c11c.mul(0.5))
-                                                                    if (player.Ne.unlocked) c11 = c11.mul(((tmp.Ne.effect).div(100)).add(1))
+                                                                    if (player.Ne.points.gte(1)) c11 = c11.mul(((tmp.Ne.effect).div(100)).add(1))
                                                                     return c11
                                                                },
                                                                rewardDisplay() {return format(tmp.F.challenges[21].rewardEffect)+"+(第1次完成该挑战时，解锁三氧化碳和四氧化碳！)"},
@@ -2539,7 +2565,7 @@ addLayer("He", {
                                                                     let c11 = new Decimal(1)
                                                                     let c11c = new Decimal(challengeCompletions("F", 22))
                                                                     c11 = c11.add(c11c.mul(new Decimal(0.15)))
-                                                                    if (player.Ne.unlocked) c11 = c11.mul(((tmp.Ne.effect).div(100)).add(1))
+                                                                    if (player.Ne.points.gte(1)) c11 = c11.mul(((tmp.Ne.effect).div(100)).add(1))
                                                                     return c11
                                                                },
                                                                rewardDisplay() {return format(tmp.F.challenges[22].rewardEffect)+"^(第1次完成该挑战时，解锁五氧化碳！)"},
@@ -2660,7 +2686,7 @@ addLayer("He", {
                                                         },
                                                         effect(){
                                                         let eff = new Decimal(0)
-                                                        eff = eff.add((player.Ne.points.log2()).mul(15))
+                                                        eff = eff.add((player.Ne.points.add(2).log2()).mul(15))
                                                         return eff
                                                         },
                                                         effect2(){
@@ -2793,7 +2819,7 @@ addLayer("He", {
                                             },
                                                 61: {
                                                     unlocked(){return player.Ne.points.gte(10)},
-                                                  title: "闪瞎双眼的氖光管<br>*电量达到30%时，解锁碳60能量！",
+                                                  title: "闪瞎双眼的氖光管<br>*电量达到40%时，解锁碳60能量！",
                                                   cost(x) {return new Decimal(6.2e12).mul(new Decimal(413).pow(x))},
                                                   canAfford() { return player.Ne.power.gte(this.cost())},
                                                   autoed(){return hasUpgrade("C",11)},
@@ -2814,7 +2840,7 @@ addLayer("He", {
                                                         let gain = player.Ne.Unpower.div(10).pow(0.5)
                                                     if(hasUpgrade("H",24)) gain = gain.mul(upgradeEffect("H",24))
                                                     gain = gain.mul(player.Ne.Time.mul(0.05))
-                                                    if(hasMilestone("C",16)) gain = gain.mul(tmp.C.Rank)
+                                                    if(hasMilestone("C",16)) gain = gain.mul(player.C.Rank)
                                                     if(hasMilestone("C",17)) gain = gain.mul(buyableEffect("He",11))
                                                     if(hasUpgrade("B",23)) gain = gain.mul(upgradeEffect("B",23))
                                                     return gain
@@ -2936,8 +2962,9 @@ addLayer("He", {
                                                     }
                                                         },
                                                         update(diff) {
-                                                            if (player.Ne.unlocked) player.Ne.Unpower = player.Ne.Unpower.plus(tmp.Ne.effect2.times(diff).pow(1));
-                                                            if (player.Ne.unlocked) player.Ne.Time = player.Ne.Time.plus(diff)
+                                                            if (player.Ne.points.gte(1)) player.Ne.Unpower = player.Ne.Unpower.plus(tmp.Ne.effect2.times(diff).pow(1));
+                                                            if (player.Ne.points.gte(1)) player.Ne.Time = player.Ne.Time.plus(diff)
+                                                            if (hasUpgrade("Na",41)) player.Ne.power = player.Ne.power.add((new Decimal(1000).mul(diff).mul(tmp[this.layer].buyables[71].gain)))
                                                         },
                                                         bars: {
                                                             NextCD: {
@@ -2965,9 +2992,807 @@ addLayer("He", {
                                                     addLayer("Na", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
                                                             unlocked: true,                     // You can add more variables here to add them to your layer.
-                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                            points: new Decimal(0),  
+                                                            research: new Decimal(0),
+                                                            power1: new Decimal(0),
+                                                            power2: new Decimal(0), 
+                                                            power3: new Decimal(0), 
+                                                            power4: new Decimal(0), 
+                                                            power5: new Decimal(0),            // "points" is the internal name for the main resource of the layer.
+                                                            power6: new Decimal(0), 
+                                                            power7: new Decimal(0),
+                                                            layer1: new Decimal(0),
+                                                            layer2: new Decimal(0),
+                                                            layer3: new Decimal(0),
+                                                            layer4: new Decimal(0),
+                                                            layer5: new Decimal(0),
+                                                            layer6: new Decimal(0),
+                                                            layer7: new Decimal(0),
+                                                            layer1limit:new Decimal(0),
+                                                            layer2limit:new Decimal(0),
+                                                            layer3limit:new Decimal(0),
+                                                            layer4limit:new Decimal(0),
+                                                            layer5limit:new Decimal(0),
+                                                            layer6limit:new Decimal(0),
+                                                            layer7limit:new Decimal(0),
+                                                            rewardEffect1:new Decimal(1),
+                                                            rewardEffect2:new Decimal(1),
+                                                            rewardEffect3:new Decimal(1),
+                                                            rewardEffect4:new Decimal(1),
+                                                            rewardEffect5:new Decimal(1),
+                                                            rewardEffect6:new Decimal(1),
+                                                            rewardEffect7:new Decimal(1),
+                                                            effect:new Decimal(1),
                                                         }},
+                                                        researcheffect(){
+                                                            let eff = new Decimal(1)
+                                                            if(!hasUpgrade("Na",53))eff = eff.mul(player.Na.research.add(1)).log10().add(1)
+                                                            if(hasUpgrade("Na",53))eff = eff.mul(player.Na.research.add(1)).ln().add(1)
+                                                            return eff
+                                                        },
+                                                        tabFormat:{
+                                                            "SodiumResearch":{
+                                                                content:[ "main-display",
+                                                                "prestige-button",
+                                                            ["bar", "NextCD"],
+                                                            ["infobox","introBox"],
+                                                            
+                                                            "upgrades",
+                                                            
+                                                            "challenges",
+                                                        "grid",
+
+            "blank",
+            
+            "milestones",
+            
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    },
+                                                    "SuperSodiumResearch(Tier1)":{
+                                                        content:[ "main-display",
+                                                        "prestige-button",
+                                                        ["display-text",
+                                                                function() {return '您拥有<h2 style=color:#0000FF;text-shadow:0px 0px 10px;>' + format(player.Na.research) + '<h2>低阶钠精研点数,降低钠离子与氢氧化钠研究阈值<h2 style=color:#0000FF;text-shadow:0px 0px 10px;>'+format(tmp.Na.researcheffect)},
+                                                                    {}],
+                                                        
+                                                                    ["buyable",11],
+                                                                    "blank",
+                                                                    ["buyable",41],
+                                                                    "blank",
+                                                                    ["buyable",21],
+                                                                    "blank",
+                                                                    "blank",
+                                                                    "blank",
+                                                                    ["row",[["buyable", 31], ["buyable", 32]]],
+                                                                    
+                                                        "blank",
+                                                        
+                                                        "milestones"]  ,
+                                                        buttonStyle: {"border-color": "#0000FF","background-color": "#000088"},  
+                                                        style:{"background-color":"#000033"},
+                                                        unlocked(){return hasUpgrade("Na",41)}
+                                                    }
+                                                        },
+                                                        bars: {
+                                                            NextCD: {
+                                                                direction: RIGHT,
+                                                                width: 700,
+                                                                height: 30,
+                                                                fillStyle: {'background-color' : "#104ea2"},
+                                                                req() {
+                                                                    let req =new Decimal("1e3500")
+                                                                    return req
+                                                                },
+                                                                display() {
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let r = "到达" + format(this.req()) + " 氢以解锁下一种元素. (" + format(f.log10().div(this.req().log10()).mul(100).min(100)) + "%)"
+                                                                    return r
+                                                                },
+                                                                progress() { 
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let p = f.log10().div(this.req().log10())
+                                                                    return p
+                                                                },
+                                                            },
+                                                        },
+                                                        infoboxes: {
+                                                            introBox: {
+                                                                    title: "11号元素-钠",
+                                                                    body(){
+                                                                            let a = "你已经收集了1e950个氢原子，足够聚变生成一个氖原子了！"
+                                                                            let b = "聚变钠原子不会消耗任何更低层级的资源。"
+                                                                            let c = "钠（Natrium）是一种金属元素，元素符号是Na，英文名sodium。"
+                                                                            let d = "在周期表中位于第3周期、第ⅠA族，是碱金属元素的代表，"
+                                                                            let e = "质地柔软，能与水反应生成氢氧化钠，放出氢气，化学性质较活泼。"
+                                                                            e += "钠元素以盐的形式广泛的分布于陆地和海洋中，钠也是人体肌肉组织和神经组织中的重要成分之一。 "
+                                                                            let f = "钠为银白色立方体结构金属，质软而轻可用小刀切割，密度比水小。"
+                                                                            let g = "钠还能在二氧化碳中燃烧，和低元醇反应产生氢气，和电离能力很弱的液氨也能反应，具有抗腐蚀性。" 
+                                                                            let h = "钠原子的最外层只有1个电子，很容易失去，所以有强还原性。"
+                                                                            let i = "试着通过重置将全部基本粒子、1-9号元素原子聚合成钠原子吧！"
                                                     
+                                                                            return a + b + c + " " + d + e + f + g + h + i
+                                                                    },
+                                                                    
+                                                            },
+                                                        },
+                                                        buyables:{
+                                                            11: {
+                                                                title: "低阶钠精研",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+                                                                    if (!getBuyableAmount("Na",31).gte(1))gain = gain.mul(player.Na.layer1.sub(66).pow(2))
+                                                                    if (getBuyableAmount("Na",31).gte(1))gain = gain.mul(player.Na.layer1.sub(66).pow(2.5))
+                                                                    if (!getBuyableAmount("Na",31).gte(1))gain = gain.mul(player.Na.layer2.sub(49).pow(3))
+                                                                    if (getBuyableAmount("Na",31).gte(1))gain = gain.mul(player.Na.layer2.sub(49).pow(3.5))
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("重置你的前两种钠研究和钠，获得"+formatWhole(tmp[this.layer].buyables[this.id].gain)+"低阶钠精研点数\n"+
+                                                                    "*钠精研点数很不稳定，在重置时所有旧获得的精研点数都会丢失！\n"+
+                                                                    "需要: 66钠离子研究深度、50氢氧化钠研究深度\n"+
+                                                                    "研究效率：30%\n")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return true},
+                                                                buy() { 
+                                                                     player.Na.research = new Decimal(0)
+                                                                     player.Na.layer1 = new Decimal(0)
+                                                                     player.Na.layer2 = new Decimal(0)
+                                                                     player.Na.power1 = new Decimal(0)
+                                                                     player.Na.power2 = new Decimal(0)
+                                                                     player.Na.research = player.Na.research.add(tmp[this.layer].buyables[this.id].gain)
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-color': "#0000FF",'border-radius': "25px", height: "100px", width: "300px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            21: {
+                                                                unlocked(){return player.Na.research.gte(1)},
+                                                              title: "钠-23",
+                                                              cost(x) {if (!getBuyableAmount(this.layer, this.id).gte(1)) return new Decimal(1700000)
+                                                                if (getBuyableAmount(this.layer, this.id).gte(1)) return new Decimal(1.7e308)},
+                                                              canAfford() { return player.Na.research.gte(this.cost())},
+                                                              buy() {
+                                                                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                                 player[this.layer].research = player[this.layer].research.sub(tmp[this.layer].buyables[this.id].cost)
+                                                              },
+                                                              display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：每购买1个氖管，研究力量提升1%（叠加）\n当前：x${format(this.effect())}`},
+                                                              effect(x) { 
+                                                                eff = ((getBuyableAmount("Ne",11).add(getBuyableAmount("Ne",21)).add(getBuyableAmount("Ne",31)).add(getBuyableAmount("Ne",41)).add(getBuyableAmount("Ne",51)).add(getBuyableAmount("Ne",61)).mul(x)).add(100)).div(100)
+                                                                return eff
+                                                            },
+                                                            style() {  if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
+                                                            if (getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#00BB00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00FF00",'border-radius': "25px", height: "120px", width: "240px"}},
+                                                        },
+                                                        31: {
+                                                            unlocked(){return getBuyableAmount("Na",21).gte(1)},
+                                                          title: "钠-24(Research)",
+                                                          cost(x) {if ((!getBuyableAmount(this.layer, this.id).gte(1))&&(!getBuyableAmount("Na",32).gte(1))) return new Decimal(50000000)
+                                                          else return new Decimal(1.7e308)},
+                                                          canAfford() { return player.Na.research.gte(this.cost())},
+                                                          buy() {
+                                                             setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                             player[this.layer].research = player[this.layer].research.sub(tmp[this.layer].buyables[this.id].cost)
+                                                          },
+                                                          display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：精研点数获取基数+1\n当前：+${format(this.effect())}`},
+                                                          effect(x) { 
+                                                            eff = new Decimal(1).mul(x)
+                                                            return eff
+                                                        },
+                                                        branches:["21"],
+                                                        style() {  if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "cyan", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
+                                                        if (getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#00BB00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00FF00",'border-radius': "25px", height: "120px", width: "240px"}},
+                                                    },
+                                                    32: {
+                                                        unlocked(){return getBuyableAmount("Na",21).gte(1)},
+                                                      title: "钠-25(Effect)",
+                                                      cost(x) {if ((!getBuyableAmount(this.layer, this.id).gte(1))&&(!getBuyableAmount("Na",31).gte(1))) return new Decimal(1e10)
+                                                        else return new Decimal(1.7e308)},
+                                                      canAfford() { return player.Na.research.gte(this.cost())},
+                                                      buy() {
+                                                         setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                         player[this.layer].research = player[this.layer].research.sub(tmp[this.layer].buyables[this.id].cost)
+                                                      },
+                                                      display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：研究力量以大大增强的倍率加成氢和基本粒子获取\n当前：x${format(this.effect())}`},
+                                                      effect(x) { 
+                                                        eff = player.Na.points.pow(75)
+                                                        return eff
+                                                    },
+                                                    branches:["21"],
+                                                    style() {if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "yellow", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
+                                                    if (getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#00BB00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00FF00",'border-radius': "25px", height: "120px", width: "240px"}},
+                                                },
+                                                41: {
+                                                    title: "洗点",
+                                                    gain() { 
+                                                        let gain = player.Na.layer1.sub(66).pow(2)
+                                                        gain = gain.mul(player.Na.layer2.sub(49).pow(3))
+                                                    return gain
+                                                },
+                                                    display() { // Everything else displayed in the buyable button after the title
+                                                        let data = tmp[this.layer].buyables[this.id]
+                                                        let display = ("重置你已完成的所有低阶钠精研(*不退还精研点数)")
+                                                        return display;
+                                                    },
+                                                    unlocked() { return true }, 
+                                                    canAfford() { return true},
+                                                    buy() { 
+                                                        setBuyableAmount("Na",21,new Decimal(0))
+                                                        setBuyableAmount("Na",31,new Decimal(0))
+                                                        setBuyableAmount("Na",32,new Decimal(0))
+                                                         
+                                                    },
+                                                    buyMax() {
+                                                        // I'll do this later ehehe
+                                                    },
+                                                    style() { return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-color': "#0000FF",'border-radius': "25px", height: "100px", width: "100px"}},
+                                                    autoed() { return false},
+                                                },
+                                                    },
+                                                        challenges:{
+                                                            11: {
+                                                                name: "钠离子(Na+)",
+                                                                currencyDisplayName: "???",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "开始研究，提升钠离子研究深度"
+                                                                    if (inChallenge("Na", 11)) c11 = c11 + " (研究中)"
+                                                                    if (challengeCompletions("Na", 11) == 1) c11 = c11 + " (空闲)"
+                                                                    c11 = c11 + "<br>深度:" + player.Na.layer1
+                                                                    c11 = c11 + "<br>下一深度还需要" + format((player.Na.power1))  +"/"+format((player.Na.layer1limit))+"研究力量"
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("Na", 11) == 0) return Decimal.pow(10,1e308);
+                                                                },
+                                                                completionLimit:1,
+
+                                                                rewardDescription: "提升基本粒子获取",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(1000)
+                                                                    c11 = c11.pow(player.Na.layer1)
+                                                                    if(hasUpgrade("Na",14))c11 = c11.mul(upgradeEffect("Na",14))
+                                                                    player.Na.rewardEffect1 = c11
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(player.Na.rewardEffect1)+"x"},
+                                                              
+                                                                unlocked(){
+                                                                    return true
+                                                                }
+                                                            },
+                                                            12: {
+                                                                name: "氢氧化钠(NaOH)",
+                                                                currencyDisplayName: "???",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "开始研究，提升氢氧化钠研究深度"
+                                                                    if (inChallenge("Na", 12)) c11 = c11 + " (研究中)"
+                                                                    if (challengeCompletions("Na", 12) == 1) c11 = c11 + " (空闲)"
+                                                                    c11 = c11 + "<br>深度:" + player.Na.layer2
+                                                                    c11 = c11 + "<br>下一深度还需要" + format((player.Na.power2))  +"/"+format((player.Na.layer2limit))+"研究力量"
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("Na", 12) == 0) return Decimal.pow(10,1e308);
+                                                                },
+                                                                completionLimit:1,
+
+                                                                rewardDescription: "提升氢获取与氢气效果",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(200)
+                                                                    c11 = c11.pow(player.Na.layer2)
+                                                                    if(hasUpgrade("Na",22))c11 = c11.mul(upgradeEffect("Na",22))
+                                                                    player.Na.rewardEffect2 = c11
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(player.Na.rewardEffect2)+"x(该研究深度到达10时，解锁下一项研究！)"},
+                                                              
+                                                                unlocked(){
+                                                                    return true
+                                                                }
+                                                            },
+                                                            21: {
+                                                                name: "硫酸钠(Na2SO4)",
+                                                                currencyDisplayName: "???",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "开始研究，提升硫酸钠研究深度"
+                                                                    if (inChallenge("Na", 21)) c11 = c11 + " (研究中)"
+                                                                    if (challengeCompletions("Na", 21) == 1) c11 = c11 + " (空闲)"
+                                                                    c11 = c11 + "<br>深度:" + player.Na.layer3
+                                                                    c11 = c11 + "<br>下一深度还需要" + format((player.Na.power3))  +"/"+format((player.Na.layer3limit))+"研究力量"
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("Na", 21) == 0) return Decimal.pow(10,1e308);
+                                                                },
+                                                                completionLimit:1,
+
+                                                                rewardDescription: "提升氦获取(研究效果)与氦-3效果(研究效果^0.3)",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(9)
+                                                                    c11 = c11.pow(player.Na.layer3)
+                                                                    player.Na.rewardEffect3 = c11
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(player.Na.rewardEffect3)+"x(该研究深度到达10时，解锁下一项研究！)"},
+                                                              
+                                                                unlocked(){
+                                                                    return player.Na.layer2.gte(10)
+                                                                }
+                                                            },
+                                                            22: {
+                                                                name: "硼酸钠(Na2B4O7)",
+                                                                currencyDisplayName: "???",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "开始研究，提升硼酸钠研究深度"
+                                                                    if (inChallenge("Na", 22)) c11 = c11 + " (研究中)"
+                                                                    if (challengeCompletions("Na", 22) == 1) c11 = c11 + " (空闲)"
+                                                                    c11 = c11 + "<br>深度:" + player.Na.layer4
+                                                                    c11 = c11 + "<br>下一深度还需要" + format((player.Na.power4))  +"/"+format((player.Na.layer4limit))+"研究力量"
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("Na", 22) == 0) return Decimal.pow(10,1e308);
+                                                                },
+                                                                completionLimit:1,
+
+                                                                rewardDescription: "提升硼效应及丁硼烷效果",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(4)
+                                                                    c11 = c11.pow(player.Na.layer4)
+                                                                    player.Na.rewardEffect4 = c11
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(player.Na.rewardEffect4)+"x"},
+                                                              
+                                                                unlocked(){
+                                                                    return player.Na.layer3.gte(10)
+                                                                }
+                                                            },
+                                                            31: {
+                                                                name: "碳酸钠(Na2CO3)",
+                                                                currencyDisplayName: "???",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "开始研究，提升碳酸钠研究深度"
+                                                                    if (inChallenge("Na", 31)) c11 = c11 + " (研究中)"
+                                                                    if (challengeCompletions("Na", 31) == 1) c11 = c11 + " (空闲)"
+                                                                    c11 = c11 + "<br>深度:" + player.Na.layer5
+                                                                    c11 = c11 + "<br>下一深度还需要" + format((player.Na.power5))  +"/"+format((player.Na.layer5limit))+"研究力量"
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("Na", 31) == 0) return Decimal.pow(10,1e308);
+                                                                },
+                                                                completionLimit:1,
+
+                                                                rewardDescription: "提升木炭能量获取与时间速度效果",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(5)
+                                                                    c11 = c11.pow(player.Na.layer5)
+                                                                    player.Na.rewardEffect5 = c11
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(player.Na.rewardEffect5)+"x"},
+                                                              
+                                                                unlocked(){
+                                                                    return player.Na.layer4.gte(10)
+                                                                }
+                                                            },
+                                                            32: {
+                                                                name: "硝酸钠(NaNO3)",
+                                                                currencyDisplayName: "???",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "开始研究，提升硝酸钠研究深度"
+                                                                    if (inChallenge("Na", 32)) c11 = c11 + " (研究中)"
+                                                                    if (challengeCompletions("Na", 32) == 1) c11 = c11 + " (空闲)"
+                                                                    c11 = c11 + "<br>深度:" + player.Na.layer6
+                                                                    c11 = c11 + "<br>下一深度还需要" + format((player.Na.power6))  +"/"+format((player.Na.layer6limit))+"研究力量"
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("Na", 32) == 0) return Decimal.pow(10,1e308);
+                                                                },
+                                                                completionLimit:1,
+
+                                                                rewardDescription: "提升全部氮升级效果",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(3)
+                                                                    c11 = c11.pow(player.Na.layer6)
+                                                                    player.Na.rewardEffect6 = c11
+
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(player.Na.rewardEffect6)+"x"},
+                                                              
+                                                                unlocked(){
+                                                                    return true
+                                                                }
+                                                            },
+                                                            41: {
+                                                                name: "氧化钠(Na2O)",
+                                                                currencyDisplayName: "???",
+                                                                currencyInternalName: "Cpower",
+                                                                currencyLayer: "C",
+                                                                challengeDescription: function() {
+                                                                    let c11 = "开始研究，提升氧化钠研究深度"
+                                                                    if (inChallenge("Na", 41)) c11 = c11 + " (研究中)"
+                                                                    if (challengeCompletions("Na", 41) == 1) c11 = c11 + " (空闲)"
+                                                                    c11 = c11 + "<br>深度:" + player.Na.layer7
+                                                                    c11 = c11 + "<br>下一深度还需要" + format((player.Na.power7))  +"/"+format((player.Na.layer7limit))+"研究力量"
+                                                                    return c11
+                                                                },
+                                                                goal(){
+                                                                    if (challengeCompletions("Na", 41) == 0) return Decimal.pow(10,1e308);
+                                                                },
+                                                                completionLimit:1,
+
+                                                                rewardDescription: "提升提纯与未提纯氖气获取",
+                                                                rewardEffect() {
+                                                                    let c11 = new Decimal(111)
+                                                                    c11 = c11.pow(player.Na.layer7)
+                                                                    player.Na.rewardEffect7 = c11
+                                                                    return c11
+                                                               },
+                                                               rewardDisplay() {return format(player.Na.rewardEffect7)+"x"},
+                                                              
+                                                                unlocked(){
+                                                                    return false
+                                                                }
+                                                            },
+                                                        },
+                                                        upgrades: {
+                                                            11: {
+                                                            title: "钠原子(Na)",
+                                                            description: "级别以降低的速度提升研究力量",
+                                                            cost: new Decimal(1000),
+                                                            currencyDisplayName: "钠离子研究力量",
+                                                            currencyInternalName: "power1",
+                                                            currencyLayer:"Na",
+                                                            effect(){let eff = player.C.Rank.pow(0.3)
+                                                                if(hasUpgrade("Na",34)) eff = eff.pow(3)
+                                                                return eff},
+                                                            effectDisplay(){return `x${format(this.effect())}`},
+                                                            unlocked(){return true}
+                                                            },
+                                                        12: {
+                                                            title: "氢化钠(NaH)",
+                                                            description: "研究力量公式指数提升1",
+                                                            cost: new Decimal(4),
+                                                            currencyDisplayName: "钠",
+                                                            currencyInternalName: "points",
+                                                            currencyLayer:"Na",
+                                                            effect(){return new Decimal(1)},
+                                                            effectDisplay(){return `+${format(this.effect())}`},
+                                                            unlocked(){return true}
+                                                            },
+                                                                13: {
+                                                                title: "葡萄糖酸钠(C6H11NaO7)",
+                                                                description: "阶层以降低的速度提升研究力量",
+                                                                cost: new Decimal(10000),
+                                                                currencyDisplayName: "氢氧化钠研究力量",
+                                                                currencyInternalName: "power2",
+                                                                currencyLayer:"Na",
+                                                                effect(){let eff = player.C.Tier.pow(0.6)
+                                                                    if(hasUpgrade("Na",35)) eff = eff.pow(3)
+                                                                    return eff},
+                                                                effectDisplay(){return `x${format(this.effect())}`},
+                                                                unlocked(){return true}
+                                                                },
+                                                                
+                                                                    15: {
+                                                                        title: "亚硝酸钠(NaNO2)",
+                                                                        description: "研究力量以大幅降低的速度提升超重水(上限10x)",
+                                                                        cost: new Decimal(5),
+                                                                        currencyDisplayName: "钠",
+                                                                        currencyInternalName: "points",
+                                                                        currencyLayer:"Na",
+                                                                        effect(){return player.Na.points.pow(0.2)},
+                                                                        effectDisplay(){return `x${format(this.effect())}`},
+                                                                        unlocked(){return true}
+                                                                        },
+                                                                        21: {
+                                                                            title: "丙酸钠(C3H5O2Na)",
+                                                                            description: "此行每有1个升级，柠檬酸钠效果+0.05",
+                                                                            cost: new Decimal(3),
+                                                                            currencyDisplayName: "硫酸钠研究深度",
+                                                                            currencyInternalName: "layer3",
+                                                                            currencyLayer:"Na",
+                                                                            effect(){let eff = new Decimal(0.05)
+                                                                                if(hasUpgrade("Na",22)) eff = eff.add(0.05)
+                                                                                if(hasUpgrade("Na",23)) eff = eff.add(0.05)
+                                                                                if(hasUpgrade("Na",24)) eff = eff.add(0.05)
+                                                                                if(hasUpgrade("Na",25)) eff = eff.add(0.05)
+                                                                                if(hasUpgrade("Na",31)) eff = eff.add(upgradeEffect("Na",31))
+                                                                            return eff},
+                                                                            effectDisplay(){return `+${format(this.effect())}`},
+                                                                            unlocked(){return hasUpgrade("Na",15)}
+                                                                            },
+                                                                            22: {
+                                                                                title: "十八酸钠(C17H35COONa)",
+                                                                                description: "柠檬酸钠效果同样适用于氢氧化钠",
+                                                                                cost: new Decimal(4),
+                                                                                currencyDisplayName: "硫酸钠研究深度",
+                                                                                currencyInternalName: "layer3",
+                                                                                currencyLayer:"Na",
+                                                                                effect(){let eff = upgradeEffect("Na",14)
+                                                                                return eff},
+                                                                                effectDisplay(){return `^${format(this.effect())}`},
+                                                                                unlocked(){return hasUpgrade("Na",15)}
+                                                                                },
+                                                                                23: {
+                                                                                    title: "乳酸钠(C3H5O3Na)",
+                                                                                    description: "每有1深度的前三种研究，研究力量指数就提升0.01",
+                                                                                    cost: new Decimal(18),
+                                                                                    currencyDisplayName: "氢氧化钠研究深度",
+                                                                                    currencyInternalName: "layer2",
+                                                                                    currencyLayer:"Na",
+                                                                                    effect(){let eff = (player.Na.layer1.add(player.Na.layer2).add(player.Na.layer3)).mul(0.01)
+                                                                                        if(hasUpgrade("Na",52)) eff = eff.add(upgradeEffect("Na",52))
+                                                                                    return eff},
+                                                                                    effectDisplay(){return `+${format(this.effect())}`},
+                                                                                    unlocked(){return hasUpgrade("Na",15)}
+                                                                                    },
+                                                                                    24: {
+                                                                                        title: "苹果酸钠(C4H4O5Na2·H2O)",
+                                                                                        description: "前三种研究的成本提升指数-0.2",
+                                                                                        cost: new Decimal(24),
+                                                                                        currencyDisplayName: "钠离子研究深度",
+                                                                                        currencyInternalName: "layer1",
+                                                                                        currencyLayer:"Na",
+                                                                                        effect(){let eff = new Decimal(0.2)
+                                                                                        return eff},
+                                                                                        effectDisplay(){return `-${format(this.effect())}`},
+                                                                                        unlocked(){return hasUpgrade("Na",15)}
+                                                                                        },
+                                                                                        25: {
+                                                                                            title: "醋酸钠(CH3COONa)",
+                                                                                            description: "钠获取指数-2(这反而是加成！)",
+                                                                                            cost: new Decimal(27),
+                                                                                            currencyDisplayName: "钠离子研究深度",
+                                                                                            currencyInternalName: "layer1",
+                                                                                            currencyLayer:"Na",
+                                                                                            effect(){let eff = new Decimal(2)
+                                                                                            return eff},
+                                                                                            effectDisplay(){return `-${format(this.effect())}`},
+                                                                                            unlocked(){return hasUpgrade("Na",15)}
+                                                                                            },
+                                                                                            31: {
+                                                                                                title: "氟化钠(NaF)",
+                                                                                                description: "上方升级效果同样基于此列",
+                                                                                                cost: new Decimal(1.5e8),
+                                                                                                currencyDisplayName: "硼酸钠研究力量",
+                                                                                                currencyInternalName: "power4",
+                                                                                                currencyLayer:"Na",
+                                                                                                effect(){let eff = new Decimal(0.15)
+                                                                                                return eff},
+                                                                                                effectDisplay(){return `+${format(this.effect())}`},
+                                                                                                unlocked(){return hasUpgrade("Na",25)}
+                                                                                                },
+                                                                                                32: {
+                                                                                                    title: "氮化钠(Na3N)",
+                                                                                                    description: "柠檬酸钠以削弱的效果提升研究力量",
+                                                                                                    cost: new Decimal(1),
+                                                                                                    currencyDisplayName: "硼酸钠研究深度",
+                                                                                                    currencyInternalName: "layer4",
+                                                                                                    currencyLayer:"Na",
+                                                                                                    effect(){let eff = upgradeEffect("Na",14).root(2)
+                                                                                                    return eff},
+                                                                                                    effectDisplay(){return `^${format(this.effect())}`},
+                                                                                                    unlocked(){return hasUpgrade("Na",25)}
+                                                                                                    },
+                                                                                                    33: {
+                                                                                                        title: "叠氮化钠(NaN3)",
+                                                                                                        description: "和上一个升级效果相同，只是效果削减。",
+                                                                                                        cost: new Decimal(2e11),
+                                                                                                        currencyDisplayName: "碳酸钠研究力量",
+                                                                                                        currencyInternalName: "power5",
+                                                                                                        currencyLayer:"Na",
+                                                                                                        effect(){let eff = upgradeEffect("Na",32).sqrt()
+                                                                                                        return eff},
+                                                                                                        effectDisplay(){return `^${format(this.effect())}`},
+                                                                                                        unlocked(){return hasUpgrade("Na",25)},
+                                                                                                        
+                                                                                                        },
+                                                                                                        34: {
+                                                                                                            title: "甲酸钠(HCOONa)",
+                                                                                                            description: "立方钠原子效果",
+                                                                                                            cost: new Decimal(8),
+                                                                                                            currencyDisplayName: "碳酸钠研究深度",
+                                                                                                            currencyInternalName: "layer5",
+                                                                                                            currencyLayer:"Na",
+                                                                                                            effect(){let eff = new Decimal(3)
+                                                                                                            return eff},
+                                                                                                            effectDisplay(){return `^${format(this.effect())}`},
+                                                                                                            unlocked(){return hasUpgrade("Na",25)},
+                                                                                                            },
+                                                                                                            35: {
+                                                                                                                title: "苯甲酸钠(C7H5NaO2)",
+                                                                                                                description: "立方葡萄糖酸钠效果",
+                                                                                                                cost: new Decimal(11),
+                                                                                                                currencyDisplayName: "碳酸钠研究深度",
+                                                                                                                currencyInternalName: "layer5",
+                                                                                                                currencyLayer:"Na",
+                                                                                                                effect(){let eff = new Decimal(3)
+                                                                                                                return eff},
+                                                                                                                effectDisplay(){return `^${format(this.effect())}`},
+                                                                                                                unlocked(){return hasUpgrade("Na",25)},
+                                                                                                                },
+                                                                                                                41: {
+                                                                                                                    title: "松香酸钠(C20H29NaO2)",
+                                                                                                                    description: "每秒获得1000倍氖提纯可获得的氖，氖提纯效率永久提升10%，你可以自动重置氟和氖。同时解锁*精研*",
+                                                                                                                    cost: new Decimal(11),
+                                                                                                                    currencyDisplayName: "碳酸钠研究深度",
+                                                                                                                    currencyInternalName: "layer5",
+                                                                                                                    currencyLayer:"Na",
+                                                                                                                    effect(){let eff = new Decimal(10)
+                                                                                                                    return eff},
+                                                                                                                    effectDisplay(){return `+${format(this.effect())}%`},
+                                                                                                                    unlocked(){return (hasUpgrade("Na",25)&&!hasUpgrade("Na",41))},
+                                                                                                                    style() { return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-color': "#0000FF",'border-radius': "25px", height: "100px", width: "600px"}},
+                                                                                                                    },
+                                                                                                                    51: {
+                                                                                                                        title: "过氧化钠(Na2O2)",
+                                                                                                                        description: "再次生效叠氮化钠",
+                                                                                                                        cost: new Decimal(15),
+                                                                                                                        currencyDisplayName: "碳酸钠研究深度",
+                                                                                                                        currencyInternalName: "layer5",
+                                                                                                                        currencyLayer:"Na",
+                                                                                                                        effect(){let eff = upgradeEffect("Na",33)
+                                                                                                                        return eff},
+                                                                                                                        effectDisplay(){return `^${format(this.effect())}`},
+                                                                                                                        unlocked(){return (hasUpgrade("Na",41))},
+                                                                                                                        },
+                                                                                                                        52: {
+                                                                                                                            title: "超氧化钠(NaO2)",
+                                                                                                                            description: "后4种研究的效果同样能加成乳酸钠",
+                                                                                                                            cost: new Decimal(7),
+                                                                                                                            currencyDisplayName: "硝酸钠研究深度",
+                                                                                                                            currencyInternalName: "layer6",
+                                                                                                                            currencyLayer:"Na",
+                                                                                                                            effect(){let eff = (player.Na.layer4.add(player.Na.layer5).add(player.Na.layer6)).mul(0.01)
+                                                                                                                            return eff},
+                                                                                                                            effectDisplay(){return `+${format(this.effect())}`},
+                                                                                                                            unlocked(){return (hasUpgrade("Na",41))},
+                                                                                                                            },
+                                                                                                                            53: {
+                                                                                                                                title: "碳酸氢钠(NaHCO3)",
+                                                                                                                                description: "低阶钠精研点数的效果公式中log10变为ln",
+                                                                                                                                cost: new Decimal(12),
+                                                                                                                                currencyDisplayName: "硝酸钠研究深度",
+                                                                                                                                currencyInternalName: "layer6",
+                                                                                                                                currencyLayer:"Na",
+                                                                                                                                effect(){let eff = 6
+                                                                                                                                return eff},
+                                                                                                                                effectDisplay(){return `-${format(this.effect())}`},
+                                                                                                                                unlocked(){return (hasUpgrade("Na",41))},
+                                                                                                                                },
+                                                                                                                                54: {
+                                                                                                                                    title: "琥珀酸钠(C4H4Na2O4)",
+                                                                                                                                    description: "每购买一个钠研究，柠檬酸钠效果提升0.03(上限0.15)",
+                                                                                                                                    cost: new Decimal(1e9),
+                                                                                                                                    currencyDisplayName: "低阶钠精研点数",
+                                                                                                                                    currencyInternalName: "research",
+                                                                                                                                    currencyLayer:"Na",
+                                                                                                                                    effect(){let eff = new Decimal(0)
+                                                                                                                                        if(getBuyableAmount("Na",21).gte(1)) eff = eff.add(0.03)
+                                                                                                                                        if(getBuyableAmount("Na",31).gte(1)) eff = eff.add(0.03)
+                                                                                                                                        if(getBuyableAmount("Na",32).gte(1)) eff = eff.add(0.03)
+                                                                                                                                        if(hasUpgrade("Na",55)) eff = eff.mul(3)
+                                                                                                                                    return eff},
+                                                                                                                                    effectDisplay(){return `+${format(this.effect())}`},
+                                                                                                                                    unlocked(){return (hasUpgrade("Na",41))},
+                                                                                                                                    },
+                                                                                                                                    55: {
+                                                                                                                                        title: "丁酸钠(C4H7O2Na)",
+                                                                                                                                        description: "琥珀酸钠效果提升3倍",
+                                                                                                                                        cost: new Decimal(14),
+                                                                                                                                        currencyDisplayName: "硝酸钠研究深度",
+                                                                                                                                        currencyInternalName: "layer6",
+                                                                                                                                        currencyLayer:"Na",
+                                                                                                                                        effect(){let eff = new Decimal(3)
+                                                                                                                                        return eff},
+                                                                                                                                        effectDisplay(){return `x${format(this.effect())}`},
+                                                                                                                                        unlocked(){return (hasUpgrade("Na",41))},
+                                                                                                                                        },
+                                                                                                                14: {
+                                                                                                                    title: "柠檬酸钠(C6H5Na3O7)",
+                                                                                                                    description: "钠离子效果变得更好",
+                                                                                                                    cost: new Decimal(12),
+                                                                                                                    currencyDisplayName: "硫酸钠研究深度",
+                                                                                                                    currencyInternalName: "layer3",
+                                                                                                                    currencyLayer:"Na",
+                                                                                                                    effect(){let eff = new Decimal(1.41)
+                                                                                                                        if(hasUpgrade("Na",21)) eff = eff.add(upgradeEffect("Na",21))
+                                                                                                                        if(hasUpgrade("Na",54)) eff = eff.add(upgradeEffect("Na",54))
+                                                                                                                        return eff},
+                                                                                                                    effectDisplay(){return `^${format(this.effect())}`},
+                                                                                                                    unlocked(){return true}
+                                                                                                                    },
+                                                        },
+                                                        layer1limit(){ let lim = new Decimal(200).div(tmp.Na.researcheffect)
+                                                        if ((player.Na.layer1).gte(11)) lim = lim.mul(new Decimal(1).mul((new Decimal(2).sub(hasUpgrade("Na",24)?0.2:0).pow((player.Na.layer1).sub(10)))))
+                                                        player.Na.layer1limit = lim
+                                                        return lim
+                                                        },
+                                                        layer2limit(){ let lim = new Decimal(1000).div(tmp.Na.researcheffect)
+                                                            if ((player.Na.layer2).gte(10)) lim = lim.mul(new Decimal(1).mul((new Decimal(2.5).sub(hasUpgrade("Na",24)?0.2:0).pow((player.Na.layer2).sub(9)))))
+                                                            player.Na.layer2limit = lim
+                                                            return lim
+                                                            },
+                                                            layer3limit(){ let lim = new Decimal(400000).div(tmp.Na.researcheffect)
+                                                                if ((player.Na.layer3).gte(9)) lim = lim.mul(new Decimal(1).mul((new Decimal(3).sub(hasUpgrade("Na",24)?0.2:0).pow((player.Na.layer3).sub(8)))))
+                                                                player.Na.layer3limit = lim
+                                                                return lim
+                                                                },
+                                                                layer4limit(){ let lim = new Decimal(3e8).div(tmp.Na.researcheffect)
+                                                                    if ((player.Na.layer4).gte(8)) lim = lim.mul(new Decimal(1).mul((new Decimal(4.5).pow((player.Na.layer4).sub(7)))))
+                                                                    player.Na.layer4limit = lim
+                                                                    return lim
+                                                                    },
+                                                                    layer5limit(){ let lim = new Decimal(1e12).div(tmp.Na.researcheffect)
+                                                                        if ((player.Na.layer5).gte(7)) lim = lim.mul(new Decimal(1).mul((new Decimal(7).pow((player.Na.layer5).sub(6)))))
+                                                                        player.Na.layer5limit = lim
+                                                                        return lim
+                                                                        },
+                                                                        layer6limit(){ let lim = new Decimal(7e19)
+                                                                            if ((player.Na.layer6).gte(6)) lim = lim.mul(new Decimal(1).mul((new Decimal(10).pow((player.Na.layer6).sub(5)))))
+                                                                            player.Na.layer6limit = lim
+                                                                            return lim
+                                                                            },
+                                                                            layer7limit(){ let lim = new Decimal(3e38)
+                                                                                if ((player.Na.layer7).gte(5)) lim = lim.mul(new Decimal(1).mul((new Decimal(20).pow((player.Na.layer7).sub(4)))))
+                                                                                player.Na.layer7limit = lim
+                                                                                return lim
+                                                                                },
+                                                        effect(){ 
+                                                            if(!hasUpgrade("Na",12))eff = player.Na.points.pow(3)
+                                                            if((hasUpgrade("Na",12))&&(!hasUpgrade("Na",23)))eff = player.Na.points.pow(4)
+                                                            if(hasUpgrade("Na",23))eff = player.Na.points.pow(new Decimal(4).add(upgradeEffect("Na",23)))
+                                                            if(hasUpgrade("Na",11))eff = eff.mul(upgradeEffect("Na",11))
+                                                            if(hasUpgrade("Na",13))eff = eff.mul(upgradeEffect("Na",13))
+                                                            if(hasUpgrade("Na",32))eff = eff.pow(upgradeEffect("Na",32))
+                                                            if(hasUpgrade("Na",33))eff = eff.pow(upgradeEffect("Na",33))
+                                                            if(hasUpgrade("Na",51))eff = eff.pow(upgradeEffect("Na",33))
+                                                            if(getBuyableAmount("Na",21).gte(1)) eff = eff.mul(buyableEffect("Na",21))
+                                                            player.Na.effect = eff
+                                                            return eff},
+                                                        effectDescription(){return "提升研究力量" + format(player.Na.effect) + "x"},
+                                                        update(diff){
+                                                            if(inChallenge("Na",11)) player.Na.power1 = player.Na.power1.add(((player.Na.effect)).times(diff))
+                                                            if(inChallenge("Na",12)) player.Na.power2 = player.Na.power2.add(((player.Na.effect)).times(diff))
+                                                            if(inChallenge("Na",21)) player.Na.power3 = player.Na.power3.add(((player.Na.effect)).times(diff))
+                                                            if(inChallenge("Na",22)) player.Na.power4 = player.Na.power4.add(((player.Na.effect)).times(diff))
+                                                            if(inChallenge("Na",31)) player.Na.power5 = player.Na.power5.add(((player.Na.effect)).times(diff))
+                                                            if(inChallenge("Na",32)) player.Na.power6 = player.Na.power6.add(((player.Na.effect)).times(diff))
+                                                            if(inChallenge("Na",41)) player.Na.power7 = player.Na.power7.add(((player.Na.effect)).times(diff))
+                                                            
+
+                                                            if((player.Na.power1).gte(player.Na.layer1limit)) {player.Na.power1 = player.Na.power1.sub(player.Na.layer1limit);player.Na.layer1 = player.Na.layer1.add(1)}
+                                                            if((player.Na.power2).gte(player.Na.layer2limit)) {player.Na.power2 = player.Na.power2.sub(player.Na.layer2limit);player.Na.layer2 = player.Na.layer2.add(1)}
+                                                            if((player.Na.power3).gte(player.Na.layer3limit)) {player.Na.power3 = player.Na.power3.sub(player.Na.layer3limit);player.Na.layer3 = player.Na.layer3.add(1)}
+                                                            if((player.Na.power4).gte(player.Na.layer4limit)) {player.Na.power4 = player.Na.power4.sub(player.Na.layer4limit);player.Na.layer4 = player.Na.layer4.add(1)}
+                                                            if((player.Na.power5).gte(player.Na.layer5limit)) {player.Na.power5 = player.Na.power5.sub(player.Na.layer5limit);player.Na.layer5 = player.Na.layer5.add(1)}
+                                                            if((player.Na.power6).gte(player.Na.layer6limit)) {player.Na.power6 = player.Na.power6.sub(player.Na.layer6limit);player.Na.layer6 = player.Na.layer6.add(1)}
+                                                            if((player.Na.power7).gte(player.Na.layer7limit)) {player.Na.power7 = player.Na.power7.sub(player.Na.layer7limit);player.Na.layer7 = player.Na.layer7.add(1)}
+                                                        },
                                                         color: "#F0840C",                       // The color for this layer, which affects many elements.
                                                         resource: "钠",
                                                         symbol:"Na",
@@ -2981,20 +3806,25 @@ addLayer("He", {
                                                         resetsNothing(){return true},                                    // Also the amount required to unlock the layer.
                                                         branches:["Ne"],
                                                         type: "static",                         // Determines the formula used for calculating prestige currency.
-                                                        exponent: 5,                          // "normal" prestige gain is (currency^exponent).
+                                                        exponent(){let exp = new Decimal(4.93)
+
+                                                            if (hasUpgrade("Na",25))exp = exp.sub(upgradeEffect("Na",25))
+                                                            return exp
+                                             
+                                             
+                                                          },                        // "normal" prestige gain is (currency^exponent).
                                                     
                                                         gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
                                                             return new Decimal(1)               // Factor in any bonuses multiplying gain here.
                                                         },
-                                                        gainExp() {                             // Returns the exponent to your gain of the prestige resource.
-                                                            return new Decimal(1)
+                                                        gainExp() {      
+                                                            let gain = new Decimal(1)                    // Returns the exponent to your gain of the prestige resource.
+                                                            return gain
                                                         },
                                                     
                                                         layerShown() { return hasUpgrade("B",24) },          // Returns a bool for if this layer's node should be visible in the tree.
                                                     
-                                                        upgrades: {
-                                                            // Look in the upgrades docs to see what goes here!
-                                                        },
+                                                        
                                                     })
                                                     function startCChallenge() {
                                                         doReset("C")
@@ -3194,13 +4024,13 @@ addLayer("He", {
                                                             },
                                                             63: {
                                                                 name: "木炭增量？？？",
-                                                                done() {return tmp.C.Rank.gte(1) },
+                                                                done() {return player.C.Rank.gte(1) },
                                                                 onComplete() { player.A.Goals = player.A.Goals.add(13) },
                                                                 tooltip: "获得1级别。(+13成就点数)",
                                                             },
                                                             64: {
                                                                 name: "就是木炭增量啊",
-                                                                done() {return tmp.C.Tier.gte(1) },
+                                                                done() {return player.C.Tier.gte(1) },
                                                                 onComplete() { player.A.Goals = player.A.Goals.add(13) },
                                                                 tooltip: "获得1阶层。(+13成就点数)",
                                                             },
@@ -3312,6 +4142,72 @@ addLayer("He", {
                                                                 onComplete() { player.A.Goals = player.A.Goals.add(100) },
                                                                 tooltip: "获得1氖。(+100成就点数)",
                                                             },
+                                                            102: {
+                                                                name: "氖氖氖",
+                                                                done() {return player.Ne.points.gte(3) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "获得3氖。(+100成就点数)",
+                                                            },
+                                                            103: {
+                                                                name: "它好像坏了？",
+                                                                done() {return getBuyableAmount("Ne",11).gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "给濒临损坏的氖光管充电1%。(+100成就点数)",
+                                                            },
+                                                            104: {
+                                                                name: "它真的坏了！",
+                                                                done() {return getBuyableAmount("Ne",11).gte(101) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "给濒临损坏的氖光管充电101%。(+100成就点数)",
+                                                            },
+                                                            105: {
+                                                                name: "黑的",
+                                                                done() {return getBuyableAmount("Ne",21).gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "给黯淡的氖光管充电1%。(+100成就点数)",
+                                                            },
+                                                            106: {
+                                                                name: "平凡的",
+                                                                done() {return getBuyableAmount("Ne",31).gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "给平凡的氖光管充电1%。(+100成就点数)",
+                                                            },
+                                                            107: {
+                                                                name: "亮堂堂！",
+                                                                done() {return getBuyableAmount("Ne",41).gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "给明亮的氖光管充电1%。(+100成就点数)",
+                                                            },
+                                                            108: {
+                                                                name: "超级亮堂堂！！",
+                                                                done() {return getBuyableAmount("Ne",51).gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "给超亮的氖光管充电1%。(+100成就点数)",
+                                                            },
+                                                            109: {
+                                                                name: "哦不，我的双眼！",
+                                                                done() {return getBuyableAmount("Ne",61).gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "给闪瞎双眼的氖光管充电1%。(+100成就点数)",
+                                                            },
+                                                            110: {
+                                                                name: "浑浊",
+                                                                done() {return player.Ne.Unpower.gte(1e20) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "获得1e20不纯的氖气。(+100成就点数)",
+                                                            },
+                                                            111: {
+                                                                name: "氖气军团",
+                                                                done() {return player.Ne.power.gte(1e20) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "获得1e20氖气。(+100成就点数)",
+                                                            },
+                                                            112: {
+                                                                name: "氖之紫",
+                                                                done() {return player.Ne.points.gte(10) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(100) },
+                                                                tooltip: "获得10氖。(+100成就点数)",
+                                                            },
                                                         },
                                                         tabFormat:{
                                                             "Achivements":{
@@ -3346,7 +4242,12 @@ addLayer("He", {
                                                             return ("第三周期成就")
                                                         },
                                                         achievements: {
-                                                          
+                                                            121: {
+                                                                name: "钠",
+                                                                done() {return player.Na.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(300) },
+                                                                tooltip: "获得1钠。(+300成就点数)",
+                                                            },
                                                         },
 
                                                         tabFormat:{
@@ -3486,6 +4387,7 @@ addLayer("He", {
                                                         startData() { return {
                                                             unlocked: true,
                                                             Goals:new Decimal(0)
+
                                                         }},
                                                         color: "purple",
                                                         row: "side",
@@ -3517,4 +4419,38 @@ addLayer("He", {
             , "blank", "blank", ]
                                                     }},
                                                    
+                                                    })
+                                                    addLayer("Mg", {
+                                                        startData() { return {                  // startData is a function that returns default data for a layer. 
+                                                            unlocked: true,                     // You can add more variables here to add them to your layer.
+                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                        }},
+                                                    
+                                                        color: "#104ea2",                       // The color for this layer, which affects many elements.
+                                                        resource: "镁",            // The name of this layer's main prestige resource.
+                                                        row: 5,   
+                                                        position: 2,                              // The row this layer is on (0 is the first row).
+                                                     
+                                                        baseResource: "氢",                 // The name of the resource your prestige gain is based on.
+                                                        baseAmount() { return player.H.points },  // A function to return the current amount of baseResource.
+                                                    
+                                                        requires: new Decimal("1e3500"),              // The amount of the base needed to  gain 1 of the prestige currency.
+                                                                                                // Also the amount required to unlock the layer.
+                                                    
+                                                        type: "static",                         // Determines the formula used for calculating prestige currency.
+                                                        exponent: 5,                          // "normal" prestige gain is (currency^exponent).
+                                                    
+                                                        gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
+                                                            return new Decimal(1)               // Factor in any bonuses multiplying gain here.
+                                                        },
+                                                        resetsNothing(){return true},
+                                                        gainExp() {                             // Returns the exponent to your gain of the prestige resource.
+                                                            return new Decimal(1)
+                                                        },
+                                                        branches:["Ne","Na"],
+                                                        layerShown() { return player.H.points.gte("1e3000") },          // Returns a bool for if this layer's node should be visible in the tree.
+                                                    
+                                                        upgrades: {
+                                                            // Look in the upgrades docs to see what goes here!
+                                                        },
                                                     })

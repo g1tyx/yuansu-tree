@@ -1,7 +1,7 @@
 let modInfo = {
 	name: "118元素周期表树",
 	id: "Ignotus",
-	author: "Ignotus as a student from Tianjin Zili High School,Class3,Grade8",
+	author: "Jing Yuting as a student from Tianjin Zili High School,Class3,Grade9",
 	pointsName: "基本粒子",
 	modFiles: ["layers.js", "tree.js"],
 
@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Beta v10.0",
-	name: "氖光管",
+	num: "Beta v11.0",
+	name: "活泼金属",
 }
 
 let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
@@ -53,12 +53,16 @@ let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
 		- 修复氧层级。<br>
 		<h3>Beta v9.5“Ultimate死亡杀手^3”</h3><br>
 		- 修复木炭能量获取bug和氮原子效果bug。<br>
-		<h3>Beta v10.0“氖光管”</h3><br>
+		<h2>Beta v10.0“氖光管”</h2><br>
 		- 加入氖层级并加入可购买、里程碑。<br>
-		- 加入成就。<br>`
+		- 加入成就。<br>
+		<h3>Beta v11.0“活泼金属”</h3><br>
+		- 加入钠层级并加入研究、升级、精研树。<br>
+		- 加入更多成就。<br>
+		- 修复Bug。<br>`
 		
 
-let winText = `恭喜你！你已经到达了Beta v10.0的结局！等待氖层级加入更多内容吧！`
+let winText = `恭喜你！你已经到达了Beta v11.0的结局！等待镁层级加入更多内容吧！`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
@@ -83,8 +87,10 @@ function getPointGen() {
 	if(hasUpgrade("H",13)) gain = gain.mul(player.H.points.add(1).pow(0.2))
 	if(hasUpgrade("He",11)) gain = gain.mul(8)
 	if(hasUpgrade("He",13)) gain = gain.mul(upgradeEffect("He",13))
-	if(player.B.unlocked) gain = gain.mul(format(tmp.B.ApowerEffect))
+	if(player.B.unlocked) gain = gain.mul(format(player.B.ApowerEffect))
 	if(hasUpgrade("H",24)) gain = gain.mul(upgradeEffect("H",24))
+	if((player.Na.layer1).gte(1)) gain = gain.mul(player.Na.rewardEffect1)
+	if((getBuyableAmount("Na",32)).gte(1)) gain = gain.mul(buyableEffect("Na",32))
 	return gain
 }
 
@@ -98,7 +104,7 @@ var displayThings = [
 
 // Determines when the game "ends"
 function isEndgame() {
-	return player.Na.points.gte(new Decimal("1"))
+	return player.Mg.points.gte(new Decimal("1"))
 }
 
 
@@ -122,4 +128,7 @@ function fixOldSave(oldVersion){
 var displayThings = [
 	"当前残局:1钠",
 	"*目前游戏处于Beta版本，如遇到bug或者平衡问题可联系qq2119542935*",
+    function() {return "当前游戏进度：" + format(player.H.points.log10().div(new Decimal("1e3500").log10()).mul(100).min(100)) + "%"},
+    
+	
 ]
