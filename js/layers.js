@@ -2578,6 +2578,7 @@ addLayer("He", {
                                                                 }
                                                             },
                                                         },
+                                                        autoPrestige(){return hasUpgrade("Na",41)},
                                                         effect() { 
                                                             let eff = Decimal.sub(4, Decimal.div(4, player.F.points.plus(1).log10().plus(1))) 
                                                             if(hasUpgrade("H",23)) eff = eff.mul(upgradeEffect("H",23))
@@ -2689,6 +2690,7 @@ addLayer("He", {
                                                         eff = eff.add((player.Ne.points.add(2).log2()).mul(15))
                                                         return eff
                                                         },
+                                                        autoPrestige(){return hasUpgrade("Na",41)},
                                                         effect2(){
                                                             let eff = new Decimal(1)
                                                             eff = eff.mul(new Decimal(2).pow(player.Ne.points)).sub(1)
@@ -2751,7 +2753,7 @@ addLayer("He", {
                                                         },
                                                         21: {
                                                             unlocked(){return player.Ne.points.gte(3)},
-                                                          title: "黯淡的氖光管<br>*电量达到6%时，解锁1个氢可购买;电量达到12%、20%、30%时，解锁1个氦升级",
+                                                          title: "黯淡的氖光管<br>*电量达到6%时，解锁1个氦可购买;电量达到12%、20%、30%时，解锁1个氦升级",
                                                           cost(x) {return new Decimal(15000).mul(new Decimal(1.2).pow(x))},
                                                           canAfford() { return player.Ne.power.gte(this.cost())},
                                                           autoed(){return hasUpgrade("C",11)},
@@ -2819,7 +2821,7 @@ addLayer("He", {
                                             },
                                                 61: {
                                                     unlocked(){return player.Ne.points.gte(10)},
-                                                  title: "闪瞎双眼的氖光管<br>*电量达到40%时，解锁碳60能量！",
+                                                  title: "闪瞎双眼的氖光管<br>*电量达到100%时，解锁碳60能量！",
                                                   cost(x) {return new Decimal(6.2e12).mul(new Decimal(413).pow(x))},
                                                   canAfford() { return player.Ne.power.gte(this.cost())},
                                                   autoed(){return hasUpgrade("C",11)},
@@ -2978,7 +2980,7 @@ addLayer("He", {
                                                                 },
                                                                 display() {
                                                                     let f = player.H.points.add(1).max(1)
-                                                                    let r = "到达" + format(this.req()) + " 氢以解锁下一种元素. (" + format(f.log10().div(this.req().log10()).mul(100).min(100)) + "%)"
+                                                                    let r = "到达" + format(this.req()) + " 氢并解锁一氟化硼以解锁下一种元素. (" + format(f.log10().div(this.req().log10()).mul(100).min(100)) + "%)"
                                                                     return r
                                                                 },
                                                                 progress() { 
@@ -3137,7 +3139,7 @@ addLayer("He", {
                                                                     return display;
                                                                 },
                                                                 unlocked() { return true }, 
-                                                                canAfford() { return true},
+                                                                canAfford() { return player.Na.layer1.gte(67)&&player.Na.layer2.gte(50)},
                                                                 buy() { 
                                                                      player.Na.research = new Decimal(0)
                                                                      player.Na.layer1 = new Decimal(0)
@@ -3638,7 +3640,7 @@ addLayer("He", {
                                                                                                                 41: {
                                                                                                                     title: "松香酸钠(C20H29NaO2)",
                                                                                                                     description: "每秒获得1000倍氖提纯可获得的氖，氖提纯效率永久提升10%，你可以自动重置氟和氖。同时解锁*精研*",
-                                                                                                                    cost: new Decimal(11),
+                                                                                                                    cost: new Decimal(13),
                                                                                                                     currencyDisplayName: "碳酸钠研究深度",
                                                                                                                     currencyInternalName: "layer5",
                                                                                                                     currencyLayer:"Na",
@@ -3715,7 +3717,7 @@ addLayer("He", {
                                                                                                                 14: {
                                                                                                                     title: "柠檬酸钠(C6H5Na3O7)",
                                                                                                                     description: "钠离子效果变得更好",
-                                                                                                                    cost: new Decimal(12),
+                                                                                                                    cost: new Decimal(1),
                                                                                                                     currencyDisplayName: "硫酸钠研究深度",
                                                                                                                     currencyInternalName: "layer3",
                                                                                                                     currencyLayer:"Na",
@@ -3774,7 +3776,7 @@ addLayer("He", {
                                                             if(getBuyableAmount("Na",21).gte(1)) eff = eff.mul(buyableEffect("Na",21))
                                                             player.Na.effect = eff
                                                             return eff},
-                                                        effectDescription(){return "提升研究力量" + format(player.Na.effect) + "x"},
+                                                        effectDescription(){return "提升研究力量<h2 style=color:#F0840C;text-shadow:0px 0px 10px;>" + format(player.Na.effect) + "x<h2>"},
                                                         update(diff){
                                                             if(inChallenge("Na",11)) player.Na.power1 = player.Na.power1.add(((player.Na.effect)).times(diff))
                                                             if(inChallenge("Na",12)) player.Na.power2 = player.Na.power2.add(((player.Na.effect)).times(diff))
@@ -4247,6 +4249,54 @@ addLayer("He", {
                                                                 done() {return player.Na.points.gte(1) },
                                                                 onComplete() { player.A.Goals = player.A.Goals.add(300) },
                                                                 tooltip: "获得1钠。(+300成就点数)",
+                                                            },
+                                                            122: {
+                                                                name: "其实你家盐里面就有（",
+                                                                done() {return player.Na.layer1.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(300) },
+                                                                tooltip: "获得1钠离子研究深度。(+300成就点数)",
+                                                            },
+                                                            123: {
+                                                                name: "烧碱",
+                                                                done() {return player.Na.layer2.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(300) },
+                                                                tooltip: "获得1氢氧化钠研究深度。(+300成就点数)",
+                                                            },
+                                                            124: {
+                                                                name: "硫酸盐",
+                                                                done() {return player.Na.layer3.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(300) },
+                                                                tooltip: "获得1硫酸钠研究深度。(+300成就点数)",
+                                                            },
+                                                            125: {
+                                                                name: "我的好“硼”友又多了！",
+                                                                done() {return player.Na.layer4.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(300) },
+                                                                tooltip: "获得1硼酸钠研究深度。(+300成就点数)",
+                                                            },
+                                                            126: {
+                                                                name: "苏打",
+                                                                done() {return player.Na.layer5.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(300) },
+                                                                tooltip: "获得1碳酸钠研究深度。(+300成就点数)",
+                                                            },
+                                                            127: {
+                                                                name: "人生重来盐",
+                                                                done() {return player.Na.layer6.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(300) },
+                                                                tooltip: "获得1硝酸钠研究深度。(+300成就点数)",
+                                                            },
+                                                            128: {
+                                                                name: "我们需要更深入些",
+                                                                done() {return hasUpgrade("Na",41) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(300) },
+                                                                tooltip: "解锁精研。(+300成就点数)",
+                                                            },
+                                                            131: {
+                                                                name: "镁",
+                                                                done() {return player.Mg.points.gte(1) },
+                                                                onComplete() { player.A.Goals = player.A.Goals.add(500) },
+                                                                tooltip: "获得1镁。(+500成就点数)",
                                                             },
                                                         },
 

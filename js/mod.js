@@ -1,7 +1,7 @@
 let modInfo = {
 	name: "118元素周期表树",
 	id: "Ignotus",
-	author: "Jing Yuting as a student from Tianjin Zili High School,Class3,Grade9",
+	author: "Song Zuxuan as a student from Tianjin Zili High School,Class3,Grade9",
 	pointsName: "基本粒子",
 	modFiles: ["layers.js", "tree.js"],
 
@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Beta v11.0",
-	name: "活泼金属",
+	num: "Beta v11.1",
+	name: "更活泼金属",
 }
 
 let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
@@ -59,10 +59,15 @@ let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
 		<h3>Beta v11.0“活泼金属”</h3><br>
 		- 加入钠层级并加入研究、升级、精研树。<br>
 		- 加入更多成就。<br>
-		- 修复Bug。<br>`
+		- 修复Bug。<br>
+		<h3>Beta v11.1“更活泼金属”</h3><br>
+		- 修复精研重置获取为负数时可重置的bug。<br>
+		- 加入更多成就。<br>
+		- 修复钠层升级成本错误的bug。<br>
+		- 修复钠层升级无法自动重置氟和氖的bug。<br>`
 		
 
-let winText = `恭喜你！你已经到达了Beta v11.0的结局！等待镁层级加入更多内容吧！`
+let winText = `恭喜你！你已经到达了Beta v11.1的结局！等待镁层级加入更多内容吧！`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
@@ -126,7 +131,7 @@ function maxTickLength() {
 function fixOldSave(oldVersion){
 }
 var displayThings = [
-	"当前残局:1钠",
+	"当前残局:1镁",
 	"*目前游戏处于Beta版本，如遇到bug或者平衡问题可联系qq2119542935*",
     function() {return "当前游戏进度：" + format(player.H.points.log10().div(new Decimal("1e3500").log10()).mul(100).min(100)) + "%"},
     
