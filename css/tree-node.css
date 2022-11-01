@@ -106,3 +106,19 @@
 .star:after {
 	transform: rotate(35deg);
 }
+.Al.grad:not(.locked):not(.bought) {
+	background: radial-gradient(#ffbf00, #ffeb91, #ffbf00, #ffeb91);
+	background-size: 50% 100%;
+}
+
+.Al.anim:not(.locked):not(.bought) {
+	animation: Al 10s linear infinite;
+}
+@keyframes Al {
+	0% {
+		background-position: 0% 0%;
+	}
+	100% {
+		background-position: 400% 0%;
+	}
+}

@@ -1,7 +1,7 @@
 let modInfo = {
 	name: "118元素周期表树",
 	id: "Ignotus",
-	author: "Song Zuxuan as a student from Tianjin Zili High School,Class3,Grade9",
+	author: "Jing Wenxuan as a student from Tianjin Zili High School,Class3,Grade9",
 	pointsName: "基本粒子",
 	modFiles: ["layers.js", "tree.js"],
 
@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "Beta v11.1",
-	name: "更活泼金属",
+	num: "Beta v12.0",
+	name: "镁丽的元素",
 }
 
 let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
@@ -64,10 +64,14 @@ let changelog = `<h1>更新日志（作者Ignotus）:</h1><br>
 		- 修复精研重置获取为负数时可重置的bug。<br>
 		- 加入更多成就。<br>
 		- 修复钠层升级成本错误的bug。<br>
-		- 修复钠层升级无法自动重置氟和氖的bug。<br>`
+		- 修复钠层升级无法自动重置氟和氖的bug。<br>
+		<h3>Beta v12.0“镁丽的元素”</h3><br>
+		- 加入镁层并加入很多机制。<br>
+		- 加入配平。<br>
+		- 扩充钠层级的精研树。<br>`
 		
 
-let winText = `恭喜你！你已经到达了Beta v11.1的结局！等待镁层级加入更多内容吧！`
+let winText = `恭喜你！你已经到达了Beta v12.0的结局！等待镁层级加入更多内容吧！`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
@@ -96,6 +100,7 @@ function getPointGen() {
 	if(hasUpgrade("H",24)) gain = gain.mul(upgradeEffect("H",24))
 	if((player.Na.layer1).gte(1)) gain = gain.mul(player.Na.rewardEffect1)
 	if((getBuyableAmount("Na",32)).gte(1)) gain = gain.mul(buyableEffect("Na",32))
+	if(getBuyableAmount("Na",52).gte(1)) gain = gain.mul(buyableEffect("Na",52).add(1))
 	return gain
 }
 
@@ -131,9 +136,10 @@ function maxTickLength() {
 function fixOldSave(oldVersion){
 }
 var displayThings = [
-	"当前残局:1镁",
+	"<h4 style=color:#F0840C;text-shadow:0px 0px 10px;>*警告：当氢获取超过1e10000后，其获取量将会受到一重软上限限制！*<h4>",
+	"当前残局:1铝(1e11451氢)",
 	"*目前游戏处于Beta版本，如遇到bug或者平衡问题可联系qq2119542935*",
-    function() {return "当前游戏进度：" + format(player.H.points.log10().div(new Decimal("1e3500").log10()).mul(100).min(100)) + "%"},
+    function() {return "当前游戏进度：" + format(player.H.points.log10().div(new Decimal("1e11451").log10()).mul(100).min(100)) + "%"},
     
 	
 ]

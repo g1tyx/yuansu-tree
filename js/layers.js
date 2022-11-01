@@ -30,6 +30,7 @@
         },
 },
     baseResource: "points", // Name of resource prestige is based on
+    marked(){return hasUpgrade("Mg",31)},
     baseAmount() {return player.points}, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 0.5, // Prestige currency exponent
@@ -44,6 +45,14 @@
             }
             layerDataReset(this.layer, kept)
         }
+    },
+    softcap() {
+        let sc = new Decimal("1e10000")
+        return sc;
+    },
+    softcapPower() {
+        let scp = 0.25;
+        return scp;
     },
     bars: {
         NextCD: {
@@ -92,6 +101,9 @@
         if((getBuyableAmount("Ne",61).gte(1))&&(hasMilestone("Ne",3))) mult = mult.mul(buyableEffect("Ne",61).pow(1.3))
         if((player.Na.layer1).gte(1)) mult = mult.mul(player.Na.rewardEffect1)
         if((getBuyableAmount("Na",32)).gte(1)) mult = mult.mul(buyableEffect("Na",32))
+        if(hasUpgrade("Mg",12)) mult = mult.mul(10000)
+        if(getBuyableAmount("Na",52).gte(1)) mult = mult.mul(buyableEffect("Na",52).add(1))
+        if(hasUpgrade("Mg",31)) mult = mult.mul(1e100)
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -100,6 +112,7 @@
         if (hasChallenge('Li',11)) exp = exp.times(1.1)
         if (hasUpgrade("Li",11)) exp = exp.times(1.05)
         if (hasUpgrade("Li",12)) exp = exp.times(1.05)
+            if(hasUpgrade("Mg",31)) exp = exp.mul(1.3)
         
         return exp
     },
@@ -109,6 +122,8 @@
     ],
     layerShown(){return true},
     passiveGeneration(){return hasMilestone('He',1)? 1 : 0},
+    effectDescription(){
+    if (hasUpgrade("Mg",31)) return "<h1 style=color:#FFFFFF;text-shadow:0px 0px 10px;>*超纯<h1>"},
     
     
         upgrades: { // Streaming
@@ -118,6 +133,7 @@
                 cost: new Decimal(2),
                 effect(){ let eff = new Decimal(3)
                 if(hasUpgrade("H",21)) eff = eff.mul(upgradeEffect("H",21))
+                if(hasUpgrade("Mg",31)) eff = new Decimal(1e10)
             return eff},
                 effectDisplay(){return `x${format(this.effect())}`}
                 },
@@ -126,7 +142,8 @@
                 title: "氢阴离子(H-)",
                 description: "提升2.00x氢获取",
                 cost: new Decimal(2),
-                        effect(){return new Decimal(2)},
+                        effect(){if(!hasUpgrade("Mg",12)) return new Decimal(2)
+                        if(hasUpgrade("Mg",12))return new Decimal(1)},
                         effectDisplay(){return `x${format(this.effect())}`}
                 },
             13: {
@@ -135,6 +152,7 @@
                 cost: new Decimal(2),
                         effect(){eff = player.H.points.pow(0.2)
                         if (eff>1e80) eff = new Decimal(1e80).mul(eff.div(1e80).root(5))
+                        if(hasUpgrade("Mg",31)) eff = new Decimal(1e300)
                     return eff},
                         effectDisplay(){if (upgradeEffect("H",13)<1e80) return `x${format(this.effect())}`
                         if (upgradeEffect("H",13)>1e80) return `x${format(this.effect())}(已达软上限)`}
@@ -148,6 +166,7 @@
                             if(hasUpgrade("He",12)) eff = eff.mul(upgradeEffect("He",12))
                             if((player.Na.layer2).gte(1)) eff = eff.mul(player.Na.rewardEffect2)
                             if (eff>1e80) eff = new Decimal(1e80).mul(eff.div(1e80).root(5))
+                            if(hasUpgrade("Mg",13)) eff = eff.pow(0)
                              return eff
                         },
                             effectDisplay(){if (upgradeEffect("H",14)<1e80)return `x${format(this.effect())}`
@@ -159,6 +178,7 @@
                 cost: new Decimal("1e660"),
                 effect(){
                             let eff = new Decimal(4).pow(player.C.Tier)
+                            if(hasUpgrade("Mg",31)) eff = new Decimal(1e10)
                          return eff
                     },
                         effectDisplay(){return `x${format(this.effect())}`
@@ -184,6 +204,7 @@
         cost: new Decimal("1e700"),
         effect(){
                     let eff = new Decimal(2)
+                    if(hasUpgrade("Mg",31)) eff = new Decimal(10)
                  return eff
             },
                 effectDisplay(){return `x${format(this.effect())}`
@@ -198,6 +219,7 @@
     effect(){
                 let eff = player.Ne.power.log10().sqrt()
                 if(hasUpgrade("Na",15)) eff = eff.mul(upgradeEffect("Na",15))
+                if(hasUpgrade("Mg",31)) eff = new Decimal(30)
              return eff
         },
             effectDisplay(){return `x${format(this.effect())}`
@@ -973,7 +995,8 @@ addLayer("He", {
                                                             if (hasUpgrade("B",22)) eff = eff.pow(1.14514)
                                                             
 
-                                                            if (getBuyableAmount("Be",12)) eff = eff.mul(buyableEffect("Be",12))
+                                                            if (getBuyableAmount("Be",12).gte(1)) eff = eff.mul(buyableEffect("Be",12))
+                                                            if (getBuyableAmount("Na",63).gte(1)) eff = eff.mul(buyableEffect("Na",63))
                                                             player.B.effect = eff
                                                             return eff;
                                                         },
@@ -2227,7 +2250,7 @@ addLayer("He", {
                                                                     title: "氧化氢(H₂O)",
                                                                     gain() { return player.H.points.div(1e140).cbrt().times(player.O.Opower.div(2500)).root(3.5)},
                                                                     effect() { let eff = Decimal.pow(10, player[this.layer].buyables[this.id].add(1).log10().cbrt()).plus(1)
-                                                                        if (eff>1e10) eff = ((eff.div(1e10)).root(100)).mul(1e10)
+                                                                        if (eff>1e10) eff = ((eff.div(1e10)).root(1e308)).mul(1e10)
                                                                         return eff},
                                                                     display() { // Everything else displayed in the buyable button after the title
                                                                         let data = tmp[this.layer].buyables[this.id]
@@ -2255,7 +2278,7 @@ addLayer("He", {
                                                                     gain() { return player.H.points.div(1e260).cbrt().times(player.O.Opower.div(2e5)).root(6.5) },
                                                                     effect() { let eff = Decimal.pow(1.2,player[this.layer].buyables[this.id]).log10().add(1).pow(new Decimal(2.5).add(layers["F"]["challenges"]["22"].rewardEffect()))
                                                                 if (eff>1e50) eff = ((eff.div(1e50)).root(10)).mul(1e50)
-                                                                if (eff>1e60) eff = ((eff.div(1e60)).root(10000)).mul(1e60)
+                                                                if (eff>1e60) eff = ((eff.div(1e60)).root(1e308)).mul(1e60)
                                                             return eff},
                                                                     display() { // Everything else displayed in the buyable button after the title
                                                                         let data = tmp[this.layer].buyables[this.id]
@@ -2471,7 +2494,7 @@ addLayer("He", {
                                                                 }
                                                             },
                                                             12: {
-                                                                name: "一氧化二氟(F₂O)",
+                                                                name: "二氟化氧(OF₂)",
                                                                 currencyDisplayName: "木炭能量",
                                                                 currencyInternalName: "Cpower",
                                                                 currencyLayer: "C",
@@ -2701,6 +2724,7 @@ addLayer("He", {
                                                             if(getBuyableAmount("Ne",51).gte(1)) eff = eff.mul(buyableEffect("Ne",51))
                                                             if(getBuyableAmount("Ne",61).gte(1)) eff = eff.mul(buyableEffect("Ne",61))
                                                             if(hasUpgrade("H",24)) eff = eff.mul(upgradeEffect("H",24))
+                                                            if (hasUpgrade("Mg",22)) eff = eff.mul(upgradeEffect("Mg",22))
                                                             return eff
                                                             },
                                                         layerShown() { return player.F.unlocked },          // Returns a bool for if this layer's node should be visible in the tree.
@@ -2845,6 +2869,8 @@ addLayer("He", {
                                                     if(hasMilestone("C",16)) gain = gain.mul(player.C.Rank)
                                                     if(hasMilestone("C",17)) gain = gain.mul(buyableEffect("He",11))
                                                     if(hasUpgrade("B",23)) gain = gain.mul(upgradeEffect("B",23))
+                                                    if (hasUpgrade("Mg",22)) gain = gain.mul(upgradeEffect("Mg",22))
+                                                    if(hasUpgrade("Mg",24)) gain = gain.mul(upgradeEffect("Mg",24))
                                                     return gain
                                                 },
                                                     display() { // Everything else displayed in the buyable button after the title
@@ -2967,6 +2993,13 @@ addLayer("He", {
                                                             if (player.Ne.points.gte(1)) player.Ne.Unpower = player.Ne.Unpower.plus(tmp.Ne.effect2.times(diff).pow(1));
                                                             if (player.Ne.points.gte(1)) player.Ne.Time = player.Ne.Time.plus(diff)
                                                             if (hasUpgrade("Na",41)) player.Ne.power = player.Ne.power.add((new Decimal(1000).mul(diff).mul(tmp[this.layer].buyables[71].gain)))
+                                                            if (hasMilestone("Mg",0)) buyBuyable("Ne",11)
+                                                            if (hasMilestone("Mg",0)) buyBuyable("Ne",21)
+                                                            if (hasMilestone("Mg",0)) buyBuyable("Ne",31)
+                                                            if (hasMilestone("Mg",0)) buyBuyable("Ne",41)
+                                                            if (hasMilestone("Mg",0)) buyBuyable("Ne",51)
+                                                            if (hasMilestone("Mg",0)) buyBuyable("Ne",61)
+
                                                         },
                                                         bars: {
                                                             NextCD: {
@@ -3068,6 +3101,14 @@ addLayer("He", {
                                                                     "blank",
                                                                     "blank",
                                                                     ["row",[["buyable", 31], ["buyable", 32]]],
+                                                                    "blank",
+                                                                    "blank",
+                                                                    "blank",
+                                                                    ["row",[["buyable", 51], ["buyable", 52]]],
+                                                                    "blank",
+                                                                    "blank",
+                                                                    "blank",
+                                                                    ["row",[["buyable", 61], ["buyable", 62], ["buyable", 63]]],
                                                                     
                                                         "blank",
                                                         
@@ -3128,6 +3169,8 @@ addLayer("He", {
                                                                     if (getBuyableAmount("Na",31).gte(1))gain = gain.mul(player.Na.layer1.sub(66).pow(2.5))
                                                                     if (!getBuyableAmount("Na",31).gte(1))gain = gain.mul(player.Na.layer2.sub(49).pow(3))
                                                                     if (getBuyableAmount("Na",31).gte(1))gain = gain.mul(player.Na.layer2.sub(49).pow(3.5))
+                                                                    if(hasUpgrade("Mg",14)) gain = gain.mul(tmp.Mg.MgNeffect)
+
                                                                 return gain
                                                             },
                                                                 display() { // Everything else displayed in the buyable button after the title
@@ -3168,6 +3211,7 @@ addLayer("He", {
                                                               display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：每购买1个氖管，研究力量提升1%（叠加）\n当前：x${format(this.effect())}`},
                                                               effect(x) { 
                                                                 eff = ((getBuyableAmount("Ne",11).add(getBuyableAmount("Ne",21)).add(getBuyableAmount("Ne",31)).add(getBuyableAmount("Ne",41)).add(getBuyableAmount("Ne",51)).add(getBuyableAmount("Ne",61)).mul(x)).add(100)).div(100)
+                                                                if(getBuyableAmount("Na",51).gte(1)) eff = eff.pow(buyableEffect("Na",51).add(1))
                                                                 return eff
                                                             },
                                                             style() {  if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
@@ -3205,12 +3249,112 @@ addLayer("He", {
                                                       display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：研究力量以大大增强的倍率加成氢和基本粒子获取\n当前：x${format(this.effect())}`},
                                                       effect(x) { 
                                                         eff = player.Na.points.pow(75)
+                                                        if(hasUpgrade("Mg",13)) eff = eff.pow(3)
                                                         return eff
                                                     },
                                                     branches:["21"],
                                                     style() {if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "yellow", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
                                                     if (getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#00BB00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00FF00",'border-radius': "25px", height: "120px", width: "240px"}},
                                                 },
+                                                51: {
+                                                    unlocked(){return getBuyableAmount("Na",31).gte(1)||getBuyableAmount("Na",32).gte(1)},
+                                                  title: "钠-26(Research)",
+                                                  cost(x) {if ((!getBuyableAmount(this.layer, this.id).gte(1))&&(!getBuyableAmount("Na",52).gte(1))) return new Decimal(4e11)
+                                                  else return new Decimal(1.7e308)},
+                                                  canAfford() { return player.Na.research.gte(this.cost())},
+                                                  buy() {
+                                                     setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                     player[this.layer].research = player[this.layer].research.sub(tmp[this.layer].buyables[this.id].cost)
+                                                  },
+                                                  display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：钠-23效果每有1个镁，提升0.25次方，且该精研效果的5次方提升镁效应\n当前：+${format(this.effect())}`},
+                                                  effect(x) { 
+                                                    eff = player.Mg.points.mul(0.25).add(1)
+                                                    return eff
+                                                },
+                                                branches:["31"],
+                                                style() {  if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "cyan", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
+                                                if (getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#00BB00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00FF00",'border-radius': "25px", height: "120px", width: "240px"}},
+                                            },
+                                            52: {
+                                                unlocked(){return getBuyableAmount("Na",31).gte(1)||getBuyableAmount("Na",32).gte(1)},
+                                              title: "钠-27(Effect)",
+                                              cost(x) {if ((!getBuyableAmount(this.layer, this.id).gte(1))&&(!getBuyableAmount("Na",51).gte(1))) return new Decimal(6e13)
+                                                else return new Decimal(1.7e308)},
+                                              canAfford() { return player.Na.research.gte(this.cost())},
+                                              buy() {
+                                                 setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                                 player[this.layer].research = player[this.layer].research.sub(tmp[this.layer].buyables[this.id].cost)
+                                              },
+                                              display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：氧化镁x氮化镁提升氢和基本粒子获取\n当前：x${format(this.effect())}`},
+                                              effect(x) { 
+                                                if(player.Mg.points.gte(1))eff = player.Mg.MgO
+                                                if(player.Mg.points.gte(1))eff = eff.mul(player.Mg.MgN).pow(5)
+                                                return eff
+                                            },
+                                            branches:["32"],
+                                            style() {if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "yellow", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
+                                            if (getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#00BB00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00FF00",'border-radius': "25px", height: "120px", width: "240px"}},
+                                        },
+                                        61: {
+                                            unlocked(){return getBuyableAmount("Na",51).gte(1)||getBuyableAmount("Na",52).gte(1)},
+                                          title: "钠-28(Research)",
+                                          cost(x) {if ((!getBuyableAmount(this.layer, this.id).gte(1))&&(!getBuyableAmount("Na",63).gte(1))) return new Decimal(2e15)
+                                          else return new Decimal(1.7e308)},
+                                          canAfford() { return player.Na.research.gte(this.cost())},
+                                          buy() {
+                                             setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                             player[this.layer].research = player[this.layer].research.sub(tmp[this.layer].buyables[this.id].cost)
+                                          },
+                                          display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：钠离子、氢氧化钠研究阈值除以镁效应\n当前：/${format(this.effect())}`},
+                                          effect(x) { 
+                                            eff = tmp.Mg.effect
+                                            if(hasUpgrade("Mg",44)) eff = eff.pow(2)
+                                            if(hasUpgrade("Mg",45)) eff = eff.pow(3)
+                                            return eff
+                                        },
+                                        branches:["51"],
+                                        style() {  if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "cyan", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
+                                        if (getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#00BB00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00FF00",'border-radius': "25px", height: "120px", width: "240px"}},
+                                    },
+                                    62: {
+                                        unlocked(){return getBuyableAmount("Na",51).gte(1)||getBuyableAmount("Na",52).gte(1)},
+                                      title: "钠-29",
+                                      cost(x) {if(!getBuyableAmount(this.layer, this.id).gte(1)) return new Decimal(2e16)
+                                        if(getBuyableAmount(this.layer, this.id).gte(1)) return new Decimal(1.7e308)},
+                                      canAfford() { return player.Na.research.gte(this.cost())},
+                                      buy() {
+                                         setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                         player[this.layer].research = player[this.layer].research.sub(tmp[this.layer].buyables[this.id].cost)
+                                      },
+                                      display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：钠加成镁效应\n当前：x${format(this.effect())}`},
+                                      effect(x) { 
+                                        eff = player.Na.points
+                                        return eff
+                                    },
+                                    
+                                    branches:["51","52"],
+                                    style() {  if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
+                                    if (getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#00BB00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00FF00",'border-radius': "25px", height: "120px", width: "240px"}},
+                                },
+                                63: {
+                                    unlocked(){return getBuyableAmount("Na",51).gte(1)||getBuyableAmount("Na",52).gte(1)},
+                                  title: "钠-30(Effect)",
+                                  cost(x) {if ((!getBuyableAmount(this.layer, this.id).gte(1))&&(!getBuyableAmount("Na",61).gte(1))) return new Decimal(6e17)
+                                  else return new Decimal(1.7e308)},
+                                  canAfford() { return player.Na.research.gte(this.cost())},
+                                  buy() {
+                                     setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+                                     player[this.layer].research = player[this.layer].research.sub(tmp[this.layer].buyables[this.id].cost)
+                                  },
+                                  display() {return `精研消耗：${format(this.cost())}低阶钠精研点数\n效果：上方研究以降低的速度提升全部硼烷获取\n当前：x${format(this.effect())}`},
+                                  effect(x) { 
+                                    eff = buyableEffect("Na",52).cbrt()
+                                    return eff
+                                },
+                                branches:["52"],
+                                style() {  if (!getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#000088", filter: "brightness("+new Decimal(100)+"%)", color: "yellow", 'border-color': "#0000FF",'border-radius': "25px", height: "120px", width: "240px"}
+                                if (getBuyableAmount(this.layer,this.id).gte(1)) return {'background-color': "#00BB00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00FF00",'border-radius': "25px", height: "120px", width: "240px"}},
+                            },
                                                 41: {
                                                     title: "洗点",
                                                     gain() { 
@@ -3229,6 +3373,11 @@ addLayer("He", {
                                                         setBuyableAmount("Na",21,new Decimal(0))
                                                         setBuyableAmount("Na",31,new Decimal(0))
                                                         setBuyableAmount("Na",32,new Decimal(0))
+                                                        setBuyableAmount("Na",51,new Decimal(0))
+                                                        setBuyableAmount("Na",52,new Decimal(0))
+                                                        setBuyableAmount("Na",61,new Decimal(0))
+                                                        setBuyableAmount("Na",62,new Decimal(0))
+                                                        setBuyableAmount("Na",63,new Decimal(0))
                                                          
                                                     },
                                                     buyMax() {
@@ -3262,6 +3411,7 @@ addLayer("He", {
                                                                     let c11 = new Decimal(1000)
                                                                     c11 = c11.pow(player.Na.layer1)
                                                                     if(hasUpgrade("Na",14))c11 = c11.mul(upgradeEffect("Na",14))
+                                                                    if(hasUpgrade("Mg",42))c11 = c11.mul(tmp.Mg.MgCO3effect)
                                                                     player.Na.rewardEffect1 = c11
                                                                     return c11
                                                                },
@@ -3294,6 +3444,7 @@ addLayer("He", {
                                                                     let c11 = new Decimal(200)
                                                                     c11 = c11.pow(player.Na.layer2)
                                                                     if(hasUpgrade("Na",22))c11 = c11.mul(upgradeEffect("Na",22))
+                                                                    if(hasUpgrade("Mg",42))c11 = c11.mul(tmp.Mg.MgCO3effect)
                                                                     player.Na.rewardEffect2 = c11
                                                                     return c11
                                                                },
@@ -3325,6 +3476,7 @@ addLayer("He", {
                                                                 rewardEffect() {
                                                                     let c11 = new Decimal(9)
                                                                     c11 = c11.pow(player.Na.layer3)
+                                                                    if(hasUpgrade("Mg",42))c11 = c11.mul(tmp.Mg.MgCO3effect)
                                                                     player.Na.rewardEffect3 = c11
                                                                     return c11
                                                                },
@@ -3356,6 +3508,7 @@ addLayer("He", {
                                                                 rewardEffect() {
                                                                     let c11 = new Decimal(4)
                                                                     c11 = c11.pow(player.Na.layer4)
+                                                                    if(hasUpgrade("Mg",42))c11 = c11.mul(tmp.Mg.MgCO3effect)
                                                                     player.Na.rewardEffect4 = c11
                                                                     return c11
                                                                },
@@ -3387,6 +3540,7 @@ addLayer("He", {
                                                                 rewardEffect() {
                                                                     let c11 = new Decimal(5)
                                                                     c11 = c11.pow(player.Na.layer5)
+                                                                    if(hasUpgrade("Mg",42))c11 = c11.mul(tmp.Mg.MgCO3effect)
                                                                     player.Na.rewardEffect5 = c11
                                                                     return c11
                                                                },
@@ -3418,6 +3572,7 @@ addLayer("He", {
                                                                 rewardEffect() {
                                                                     let c11 = new Decimal(3)
                                                                     c11 = c11.pow(player.Na.layer6)
+                                                                    if(hasUpgrade("Mg",42))c11 = c11.mul(tmp.Mg.MgCO3effect)
                                                                     player.Na.rewardEffect6 = c11
 
                                                                     return c11
@@ -3697,6 +3852,12 @@ addLayer("He", {
                                                                                                                                         if(getBuyableAmount("Na",21).gte(1)) eff = eff.add(0.03)
                                                                                                                                         if(getBuyableAmount("Na",31).gte(1)) eff = eff.add(0.03)
                                                                                                                                         if(getBuyableAmount("Na",32).gte(1)) eff = eff.add(0.03)
+                                                                                                                                        if(getBuyableAmount("Na",51).gte(1)) eff = eff.add(0.03)
+                                                                                                                                        if(getBuyableAmount("Na",52).gte(1)) eff = eff.add(0.03)
+                                                                                                                                        if(getBuyableAmount("Na",61).gte(1)) eff = eff.add(0.03)
+                                                                                                                                        if(getBuyableAmount("Na",62).gte(1)) eff = eff.add(0.03)
+
+                                                                                                                                        if(getBuyableAmount("Na",63).gte(1)) eff = eff.add(0.03)
                                                                                                                                         if(hasUpgrade("Na",55)) eff = eff.mul(3)
                                                                                                                                     return eff},
                                                                                                                                     effectDisplay(){return `+${format(this.effect())}`},
@@ -3731,12 +3892,14 @@ addLayer("He", {
                                                         },
                                                         layer1limit(){ let lim = new Decimal(200).div(tmp.Na.researcheffect)
                                                         if ((player.Na.layer1).gte(11)) lim = lim.mul(new Decimal(1).mul((new Decimal(2).sub(hasUpgrade("Na",24)?0.2:0).pow((player.Na.layer1).sub(10)))))
+                                                        if (getBuyableAmount("Na",61).gte(1)) lim = lim.div(buyableEffect("Na",61))
                                                         player.Na.layer1limit = lim
                                                         return lim
                                                         },
                                                         layer2limit(){ let lim = new Decimal(1000).div(tmp.Na.researcheffect)
                                                             if ((player.Na.layer2).gte(10)) lim = lim.mul(new Decimal(1).mul((new Decimal(2.5).sub(hasUpgrade("Na",24)?0.2:0).pow((player.Na.layer2).sub(9)))))
                                                             player.Na.layer2limit = lim
+                                                            if (getBuyableAmount("Na",61).gte(1)) lim = lim.div(buyableEffect("Na",61))
                                                             return lim
                                                             },
                                                             layer3limit(){ let lim = new Decimal(400000).div(tmp.Na.researcheffect)
@@ -3774,6 +3937,7 @@ addLayer("He", {
                                                             if(hasUpgrade("Na",33))eff = eff.pow(upgradeEffect("Na",33))
                                                             if(hasUpgrade("Na",51))eff = eff.pow(upgradeEffect("Na",33))
                                                             if(getBuyableAmount("Na",21).gte(1)) eff = eff.mul(buyableEffect("Na",21))
+                                                            if(hasUpgrade("Mg",11)) eff = eff.mul(tmp.Mg.MgOeffect)
                                                             player.Na.effect = eff
                                                             return eff},
                                                         effectDescription(){return "提升研究力量<h2 style=color:#F0840C;text-shadow:0px 0px 10px;>" + format(player.Na.effect) + "x<h2>"},
@@ -3794,6 +3958,7 @@ addLayer("He", {
                                                             if((player.Na.power5).gte(player.Na.layer5limit)) {player.Na.power5 = player.Na.power5.sub(player.Na.layer5limit);player.Na.layer5 = player.Na.layer5.add(1)}
                                                             if((player.Na.power6).gte(player.Na.layer6limit)) {player.Na.power6 = player.Na.power6.sub(player.Na.layer6limit);player.Na.layer6 = player.Na.layer6.add(1)}
                                                             if((player.Na.power7).gte(player.Na.layer7limit)) {player.Na.power7 = player.Na.power7.sub(player.Na.layer7limit);player.Na.layer7 = player.Na.layer7.add(1)}
+                                                            if (hasMilestone("Mg",1)) player.Na.power1 = player.Na.power1.add(((player.Na.effect)).times(diff))
                                                         },
                                                         color: "#F0840C",                       // The color for this layer, which affects many elements.
                                                         resource: "钠",
@@ -4423,9 +4588,10 @@ addLayer("He", {
                                                         "grid",
 
             "blank",
-            "upgrades",
+            
             "milestones",
             "buyables",
+            "upgrades",
            
             "blank",
             , "blank", "blank", ]
@@ -4473,10 +4639,415 @@ addLayer("He", {
                                                     addLayer("Mg", {
                                                         startData() { return {                  // startData is a function that returns default data for a layer. 
                                                             unlocked: true,                     // You can add more variables here to add them to your layer.
-                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                            points: new Decimal(0),
+                                                            MgO: new Decimal(0),
+                                                            MgN: new Decimal(0),
+                                                            MgCO3: new Decimal(0),
+                                                            MgOLimit: new Decimal(0),
+                                                            MgNLimit: new Decimal(90),
+                                                            MgCO3Limit: new Decimal(100),
+                                                            MgSO4Limit: new Decimal(101),
+                                                            Balance11:new Decimal(0),
+                                                            Balance12:new Decimal(0),
+                                                            Balance13:new Decimal(0),
+                                                            Balance14:new Decimal(0),
+                                                            Condition1:new Decimal(0),
+                                                            bar: new Decimal(0),              // "points" is the internal name for the main resource of the layer.
                                                         }},
+                                                        tabFormat:{
+                                                            "Main":{
+                                                                content:[ "main-display",
+
+                                                                "prestige-button",
+                                                                ["bar", "NextBD"],
+                                                            ["bar", "NextCD"],
+                                                            ["display-text",
+                                                            function() {return '您当前拥有<h2 style=color:#0066FF;text-shadow:0px 0px 10px;>' + format(player.Mg.MgO) + '<h2>氧化镁(MgO)，提升研究力量<h2 style=color:#0066FF;text-shadow:0px 0px 10px;>'+format(tmp.Mg.MgOeffect)+"x<h2>"},
+                                                                {}],
+                                                                ["display-text",
+                                                            function() {return '您当前拥有<h2 style=color:#FBB9DF;text-shadow:0px 0px 10px;>' + format(player.Mg.MgN) + '<h2>氮化镁(MgN)，提升氧化镁获取与低阶精研点数获取<h2 style=color:#FBB9DF;text-shadow:0px 0px 10px;>'+format(tmp.Mg.MgNeffect)+"x<h2>"},
+                                                                {}],
+                                                                ["display-text",
+                                                            function() {if(hasUpgrade("Mg",41)) return '您当前拥有<h2 style=color:#444444;text-shadow:0px 0px 10px;>' + format(player.Mg.MgCO3) + '<h2>碳酸镁(MgCO3)，提升氮化镁获取与全部钠研究效果<h2 style=color:#444444;text-shadow:0px 0px 10px;>'+format(tmp.Mg.MgCO3effect)+"x<h2>"},
+                                                                {}],
+                                                            ["infobox","introBox"],
+                                                            ["row",[["buyable", 41], ["buyable", 42]]],
+                                                           
+                                                            "challenges",
+                                                            "achievements",
+                                                        "grid",
+
+            "blank",
+            "milestones",
+            "blank",
+            "upgrades",
+           
+            "blank",
+            , "blank", "blank", ]
+                                                    },
+                                                    "Balance1":{
+                                                        content:[ "main-display",
+
+                                                        "prestige-button",
+                                                        ["display-text",
+                                                            function() {return '<h1 style=color:#FFFFFF;text-shadow:0px 0px 10px;>化学方程式配平<h1><h1 style=color:#0066FF;text-shadow:0px 0px 10px;>(难度：Past 3)<h1>'},
+                                                                {}],
+                                                                "blank",
+                                                                ["display-text",
+                                                            function() {return '<h2 style=color:#FFFFFF;text-shadow:0px 0px 10px;>请按要求完成下列化学方程式的配平并标注反应条件！<h2>'},
+                                                                {}],
+                                                                "blank",
+                                                                ["display-text",
+                                                            function() {return '<h1 style=color:#AAAAAA;text-shadow:0px 0px 10px;>'+format(player.Mg.Balance11)+'<h1><h1 style=color:#104ea2;text-shadow:0px 0px 10px;>Mg<h1><h1 style=color:#FFFFFF;text-shadow:0px 0px 10px;>+<h1><h1 style=color:#AAAAAA;text-shadow:0px 0px 10px;>'+format(player.Mg.Balance12)+'<h1><h1 style=color:#6495ED;text-shadow:0px 0px 10px;>H<h1><h1 style=color:#FFF68F;text-shadow:0px 0px 10px;>F<h1><h1 style=color:#FFFFFF;text-shadow:0px 0px 10px;>=?=<h1><h1 style=color:#AAAAAA;text-shadow:0px 0px 10px;>'+format(player.Mg.Balance13)+'<h1><h1 style=color:#104ea2;text-shadow:0px 0px 10px;>Mg<h1><h1 style=color:#FFF68F;text-shadow:0px 0px 10px;>F₂<h1><h1 style=color:#FFFFFF;text-shadow:0px 0px 10px;>+<h1><h1 style=color:#AAAAAA;text-shadow:0px 0px 10px;>'+format(player.Mg.Balance14)+'<h1><h1 style=color:#6495ED;text-shadow:0px 0px 10px;>H₂<h1>'},
+                                                                {}],
+                                                                "blank",
+                                                                ["row",[["buyable", 11], ["buyable", 12], ["buyable", 13],["buyable", 14]]],
+                                                                ["row",[["buyable", 21], ["buyable", 22], ["buyable", 23],["buyable", 24]]],
+                                                                ["buyable",31]
+    , "blank", "blank", ],
+    unlocked(){return hasUpgrade("Mg",25)}
+                                            }},
+                                                        bars: {
+                                                            NextBD: {
+                                                                direction: RIGHT,
+                                                                width: 700,
+                                                                height: 30,
+                                                                fillStyle: {'background-color' : "#AAAAFF"},
+                                                                req() {
+                                                                    let req =new Decimal("1e11451")
+                                                                    return req
+                                                                },
+                                                                display() {
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let r = "到达" + format(this.req()) + " 氢以解锁下一种元素. (" + format(f.log10().div(this.req().log10()).mul(100).min(100)) + "%)"
+                                                                    return r
+                                                                },
+                                                                progress() { 
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let p = f.log10().div(this.req().log10())
+                                                                    return p
+                                                                },
+                                                            },
+                                                            NextCD: {
+                                                                direction: RIGHT,
+                                                                width: 700,
+                                                                height: 30,
+                                                                fillStyle: {'background-color' : "#0066FF",'color': "silver"},
+                                                                Style: {'background-color' : "#0066FF"},
+                                                                req() {
+                                                                    let req =new Decimal("1e3500")
+                                                                    return req
+                                                                },
+                                                                display() {
+                                                                    let f = player.H.points.add(1).max(1)
+                                                                    let r = "你的镁条在" + format(player.Mg.bar) + " %的氮气和" + format(new Decimal(100).sub(player.Mg.bar))+ "%的氧气中燃烧。当前燃烧产物："+ (player.Mg.bar.gte(player.Mg.MgNLimit)?((player.Mg.bar.gte(player.Mg.MgCO3Limit)?"碳酸镁":"氮化镁")):"氧化镁")
+                                                                    return r
+                                                                },
+                                                                progress() { 
+                                                                    let f = player.Mg.bar
+                                                                    let p = f.div(100)
+                                                                    return p
+                                                                },
+                                                            },
+                                                        },
+                                                        MgOgain(){
+                                                        let gain = new Decimal(0.0001)
+                                                        if (player.Mg.points.gte(1)) gain = gain.mul(tmp.Mg.effect)
+                                                        if(!player.Mg.bar.gte(player.Mg.MgNLimit)) gain = gain.mul((player.Mg.MgNLimit.sub(player.Mg.bar)).mul(10))
+                                                        if(player.Mg.bar.gte(player.Mg.MgNLimit)) gain = new Decimal(0)
+                                                        if(hasUpgrade("Mg",14)) gain = gain.mul(tmp.Mg.MgNeffect)
+                                                        
+                                                        return gain
+                                                        },
+                                                        MgNgain(){
+                                                        let gain = new Decimal(0.0001)
+                                                        if (player.Mg.points.gte(1)) gain = gain.mul(tmp.Mg.effect)
+                                                        if(!player.Mg.bar.gte(player.Mg.MgNLimit)) gain = new Decimal(0)
+                                                        if((player.Mg.bar.gte(player.Mg.MgNLimit))&&(!player.Mg.bar.gte((player.Mg.MgCO3Limit.add(player.Mg.MgNLimit)).div(2)))) gain = gain.mul((player.Mg.bar.sub(player.Mg.MgNLimit)).mul(10))
+                                                        if((!player.Mg.bar.gte(player.Mg.MgCO3Limit))&&(player.Mg.bar.gte((player.Mg.MgCO3Limit.add(player.Mg.MgNLimit)).div(2)))) gain = gain.mul((player.Mg.MgCO3Limit.sub(player.Mg.bar)).mul(10))
+                                                        if(hasUpgrade("Mg",15)) gain = gain.mul(tmp.Mg.MgNeffect.sqrt())
+                                                        if(hasUpgrade("Mg",42))gain = gain.mul(tmp.Mg.MgCO3effect)
+                                                        return gain
+                                                        },
+                                                        MgCO3gain(){
+                                                            let gain = new Decimal(1e-10)
+                                                            if (player.Mg.points.gte(1)) gain = gain.mul(tmp.Mg.effect)
+                                                            if(!player.Mg.bar.gte(player.Mg.MgCO3Limit)) gain = new Decimal(0)
+                                                            if((player.Mg.bar.gte(player.Mg.MgCO3Limit))&&(!player.Mg.bar.gte((player.Mg.MgCO3Limit.add(player.Mg.MgSO4Limit)).div(2)))) gain = gain.mul((player.Mg.bar.sub(player.Mg.MgCO3Limit)).mul(10))
+                                                            if((!player.Mg.bar.gte(player.Mg.MgCO3Limit))&&(player.Mg.bar.gte((player.Mg.MgCO3Limit.add(player.Mg.MgSO4Limit)).div(2)))) gain = gain.mul((player.Mg.MgSO4Limit.sub(player.Mg.bar)).mul(10))
+                                                            return gain
+                                                            },
+                                                        
+                                                        milestones:{
+                                                            0: {
+                                                                requirementDescription: "镁粉(1镁)",
+                                                                effectDescription: "每秒钟自动购买最大数量的氖光管",
+                                                                done() {
+                                                                    return player.Mg.points.gte(1)
+                                                                }
+                                                            },
+                                                            1: {
+                                                                requirementDescription: "镁条(4镁)",
+                                                                effectDescription: "自动研究钠离子",
+                                                                done() {
+                                                                    return player.Mg.points.gte(4)
+                                                                }
+                                                            },
+
+                                                        },
+                                                        
+                                                        
+                                                    upgrades:{
+                                                        11: {
+                                                            title: "镁原子(Mg)",
+                                                            description: "解锁氧化镁效果，镁基础+1",
+                                                            cost: new Decimal(200),
+                                                            currencyDisplayName: "氧化镁",
+                                                            currencyInternalName: "MgO",
+                                                            currencyLayer:"Mg",
+                                                            effect(){let eff = new Decimal(1)
+                                                                return eff},
+                                                            effectDisplay(){return `+${format(this.effect())}`},
+                                                            unlocked(){return true}
+                                                            },
+                                                        12: {
+                                                            title: "氟化镁(MgF2)",
+                                                            description: "平方氧化镁效果，氢获取提升10000倍，但无效化氢阴离子",
+                                                            cost: new Decimal(1000),
+                                                            currencyDisplayName: "氧化镁",
+                                                            currencyInternalName: "MgO",
+                                                            currencyLayer:"Mg",
+                                                            effect(){let eff = new Decimal(2)
+                                                                return eff},
+                                                            effectDisplay(){return `^${format(this.effect())}`},
+                                                            unlocked(){return true}
+                                                            },
+                                                            13: {
+                                                                title: "氢氧化镁(Mg(OH)2)",
+                                                                description: "镁效应提升3倍，钠-25提升至3次方，但无效化氢气",
+                                                                cost: new Decimal(4),
+                                                                currencyDisplayName: "镁",
+                                                                currencyInternalName: "points",
+                                                                currencyLayer:"Mg",
+                                                                effect(){let eff = new Decimal(3)
+                                                                    return eff},
+                                                                effectDisplay(){return `^${format(this.effect())}`},
+                                                                unlocked(){return true}
+                                                                },
+                                                                14: {
+                                                                    title: "过氧化镁(MgO2)",
+                                                                    description: "您可以向氧气燃烧的集气瓶中添加氮气并生成氮化镁。氧化镁基数提升至5倍，同时解锁很多全新的钠精研！",
+                                                                    cost: new Decimal(5e5),
+                                                                    currencyDisplayName: "氧化镁",
+                                                                    currencyInternalName: "MgO",
+                                                                    currencyLayer:"Mg",
+                                                                    effect(){let eff = new Decimal(5)
+                                                                        return eff},
+                                                                    effectDisplay(){return `x${format(this.effect())}`},
+                                                                    unlocked(){return true}
+                                                                    },
+                                                                    15: {
+                                                                        title: "超氧化镁(MgO4)",
+                                                                        description: "氮化镁效果以削弱的倍率提升自身",
+                                                                        cost: new Decimal(5e9),
+                                                                        currencyDisplayName: "氧化镁",
+                                                                        currencyInternalName: "MgO",
+                                                                        currencyLayer:"Mg",
+                                                                        effect(){let eff = tmp.Mg.MgNeffect.sqrt()
+                                                                            return eff},
+                                                                        effectDisplay(){return `x${format(this.effect())}`},
+                                                                        unlocked(){return true}
+                                                                        },
+                                                                        21: {
+                                                                            title: "硝酸镁(Mg(NO3)2)",
+                                                                            description: "本行每有1个升级，就倍增一次镁效应",
+                                                                            cost: new Decimal(3e7),
+                                                                            currencyDisplayName: "氮化镁",
+                                                                            currencyInternalName: "MgN",
+                                                                            currencyLayer:"Mg",
+                                                                            effect(){let eff = new Decimal(2)
+                                                                                if (hasUpgrade("Mg",22)) eff = eff.mul(2)
+                                                                                if (hasUpgrade("Mg",23)) eff = eff.mul(2)
+                                                                                if (hasUpgrade("Mg",24)) eff = eff.mul(2)
+                                                                                if (hasUpgrade("Mg",25)) eff = eff.mul(2)
+                                                                                return eff},
+                                                                            effectDisplay(){return `x${format(this.effect())}`},
+                                                                            unlocked(){return hasUpgrade("Mg",15)}
+                                                                            },
+                                                                            22: {
+                                                                                title: "镁离子(Mg2+)",
+                                                                                description: "镁效应同样生效于氖气(包括不纯的)获取",
+                                                                                cost: new Decimal(1e8),
+                                                                                currencyDisplayName: "氮化镁",
+                                                                                currencyInternalName: "MgN",
+                                                                                currencyLayer:"Mg",
+                                                                                effect(){let eff = tmp.Mg.effect
+                                                                                    return eff},
+                                                                                effectDisplay(){return `x${format(this.effect())}`},
+                                                                                unlocked(){return hasUpgrade("Mg",15)}
+                                                                                },
+                                                                                23: {
+                                                                                    title: "叠氮化镁(MgN6)",
+                                                                                    description: "氮化镁获取阈值降低(90%~100%——>70%~100%)",
+                                                                                    cost: new Decimal(1.6e8),
+                                                                                    currencyDisplayName: "氮化镁",
+                                                                                    currencyInternalName: "MgN",
+                                                                                    currencyLayer:"Mg",
+                                                                                    effect(){let eff = new Decimal(20)
+                                                                                        return eff},
+                                                                                    effectDisplay(){return `-${format(this.effect())}`},
+                                                                                    unlocked(){return hasUpgrade("Mg",15)}
+                                                                                    },
+                                                                                    24: {
+                                                                                        title: "碳酸氢镁(Mg(HCO3)2)",
+                                                                                        description: "氧化镁效果^1.5且同样生效于氖气",
+                                                                                        cost: new Decimal(1e9),
+                                                                                        currencyDisplayName: "氮化镁",
+                                                                                        currencyInternalName: "MgN",
+                                                                                        currencyLayer:"Mg",
+                                                                                        effect(){let eff = new Decimal(1.5)
+                                                                                            return eff},
+                                                                                        effectDisplay(){return `^${format(this.effect())}`},
+                                                                                        unlocked(){return hasUpgrade("Mg",15)}
+                                                                                        },
+                                                                                        25: {
+                                                                                            title: "氢化镁(MgH2)",
+                                                                                            description: "解锁一个小游戏，并且氢超过1e4500的部分倍增镁效应",
+                                                                                            cost: new Decimal(2e9),
+                                                                                            currencyDisplayName: "氮化镁",
+                                                                                            currencyInternalName: "MgN",
+                                                                                            currencyLayer:"Mg",
+                                                                                            effect(){if(!hasUpgrade("Mg",41))eff = player.H.points.div("1e4500").log10().cbrt()
+                                                                                            if(hasUpgrade("Mg",41))eff = player.H.points.div("1e4500").log10().sqrt()
+                                                                                                return eff},
+                                                                                            effectDisplay(){return `x${format(this.effect())}`},
+                                                                                            unlocked(){return hasUpgrade("Mg",15)}
+                                                                                            },
+                                                                                            31: {
+                                                                                                title: "磷酸镁(Mg3(PO3)2)",
+                                                                                                description: "将你的氢提纯成超纯氢，并且给予层级很多加成，但所有升级效果变为定值。",
+                                                                                                cost: new Decimal(1e11),
+                                                                                                currencyDisplayName: "氮化镁",
+                                                                                                currencyInternalName: "MgN",
+                                                                                                currencyLayer:"Mg",
+                                                                                                effect(){let eff = player.H.points.div("1e4500").log10().cbrt()
+                                                                                                    return eff},
+                                                                                                effectDisplay(){return `详情请查看氢层级的超纯奖励。`},
+                                                                                                unlocked(){return hasUpgrade("Mg",25)},
+                                                                                                style() { return {'border-radius': "25px", height: "100px", width: "600px"}},
+                                                                                                },
+                                                                                                41: {
+                                                                                                    title: "硼酸镁(MgBO3)",
+                                                                                                    description: "解锁碳酸镁，降低氮化镁与氧化镁阈值，氢化镁效果更好",
+                                                                                                    cost: new Decimal(1e13),
+                                                                                                    currencyDisplayName: "氮化镁",
+                                                                                                    currencyInternalName: "MgN",
+                                                                                                    currencyLayer:"Mg",
+                                                                                                    effect(){let eff = player.H.points.div("1e4500").log10().cbrt()
+                                                                                                        return eff},
+                                                                                                    effectDisplay(){return `x${format(this.effect())}`},
+                                                                                                    unlocked(){return hasUpgrade("Mg",31)}
+                                                                                                    },
+                                                                                                    42: {
+                                                                                                        title: "苦土(轻烧镁)",
+                                                                                                        description: "解锁碳酸镁效应",
+                                                                                                        cost: new Decimal(1.5e6),
+                                                                                                        currencyDisplayName: "碳酸镁",
+                                                                                                        currencyInternalName: "MgCO3",
+                                                                                                        currencyLayer:"Mg",
+                                                                                                        effect(){let eff = tmp.Mg.MgCO3effect
+                                                                                                            return eff},
+                                                                                                        effectDisplay(){return `x${format(this.effect())}`},
+                                                                                                        unlocked(){return hasUpgrade("Mg",31)}
+                                                                                                        },
+                                                                                                        43: {
+                                                                                                            title: "丙戊酸镁(CHMgO)",
+                                                                                                            description: "氮化镁效应提升至^1.5",
+                                                                                                            cost: new Decimal(1e15),
+                                                                                                            currencyDisplayName: "氮化镁",
+                                                                                                            currencyInternalName: "MgN",
+                                                                                                            currencyLayer:"Mg",
+                                                                                                            effect(){let eff = new Decimal(1.5)
+                                                                                                                return eff},
+                                                                                                            effectDisplay(){return `^${format(this.effect())}`},
+                                                                                                            unlocked(){return hasUpgrade("Mg",31)}
+                                                                                                            },
+                                                                                                            44: {
+                                                                                                                title: "硬脂酸镁(C36H70MgO4)",
+                                                                                                                description: "钠-28对其自身再生效一次。",
+                                                                                                                cost: new Decimal(1e16),
+                                                                                                                currencyDisplayName: "低阶钠精研点数",
+                                                                                                                currencyInternalName: "research",
+                                                                                                                currencyLayer:"Na",
+                                                                                                                effect(){let eff = new Decimal(2)
+                                                                                                                    return eff},
+                                                                                                                effectDisplay(){return `^${format(this.effect())}`},
+                                                                                                                unlocked(){return hasUpgrade("Mg",31)}
+                                                                                                                },
+                                                                                                                45: {
+                                                                                                                    title: "亚硝酸镁(Mg(NO2)2)",
+                                                                                                                    description: "钠-28对其自身再生效2次，同时解锁一个新层级！",
+                                                                                                                    cost: new Decimal(1e8),
+                                                                                                                    currencyDisplayName: "碳酸镁",
+                                                                                                                    currencyInternalName: "MgCO3",
+                                                                                                                    currencyLayer:"Mg",
+                                                                                                                    effect(){let eff = new Decimal(3)
+                                                                                                                        return eff},
+                                                                                                                    effectDisplay(){return `^${format(this.effect())}`},
+                                                                                                                    unlocked(){return hasUpgrade("Mg",31)}
+                                                                                                                    },
+                                                        },
+                                                    update(diff){
+                                                        if(player.Mg.bar.gte(0.031))player.Mg.bar = player.Mg.bar.sub(diff)
+                                                        if(player.Mg.points.gte(1)) player.Mg.MgO = player.Mg.MgO.add(tmp.Mg.MgOgain.mul(diff))
+                                                        
+                                                        if(player.Mg.bar.gte(player.Mg.MgNLimit)) player.Mg.MgN = player.Mg.MgN.add(tmp.Mg.MgNgain.mul(diff))
+                                                        if(player.Mg.bar.gte(player.Mg.MgCO3Limit)) player.Mg.MgCO3 = player.Mg.MgCO3.add(tmp.Mg.MgCO3gain.mul(diff))
+                                                        if(!hasUpgrade("Mg",23)) player.Mg.MgNLimit = new Decimal(90)
+                                                        if((hasUpgrade("Mg",23))&&(!hasUpgrade("Mg",41))) player.Mg.MgNLimit = new Decimal(70)
+                                                        if((hasUpgrade("Mg",23))&&(hasUpgrade("Mg",41))) player.Mg.MgNLimit = new Decimal(40)
+                                                        if((hasUpgrade("Mg",23))&&(!hasUpgrade("Mg",41))) player.Mg.MgCO3Limit = new Decimal(100)
+                                                        if((hasUpgrade("Mg",23))&&(hasUpgrade("Mg",41))) player.Mg.MgCO3Limit = new Decimal(85)
+                                                    },
+                                                    effect(){ let eff = new Decimal(1)
+                                                        if(!hasUpgrade("Mg",11)) eff = eff.mul(new Decimal(2)).pow((player.Mg.points).pow(1.15))
+                                                    if(hasUpgrade("Mg",11)) eff = eff.mul(new Decimal(3)).pow((player.Mg.points).pow(1.15))
+                                                    if(hasUpgrade("Mg",13)) eff = eff.mul(3)
+                                                    if(hasUpgrade("Mg",14)) eff = eff.mul(5)
+                                                    if(hasUpgrade("Mg",21)) eff = eff.mul(upgradeEffect("Mg",21))
+                                                    if (getBuyableAmount("Na",62).gte(1)) eff = eff.mul(buyableEffect("Na",62))
+                                                    if(getBuyableAmount("Na",51).gte(1)) eff = eff.mul(buyableEffect("Na",51).add(1).pow(5))
+                                                    if(getBuyableAmount("Mg",31).gte(1)) eff = eff.mul(1.5)
+                                                    if(hasUpgrade("Mg",25)) eff = eff.mul(upgradeEffect("Mg",25))
+                                                return eff},
+                                                    MgOeffect(){let eff = new Decimal(1)
+                                                    if(hasUpgrade("Mg",11)) eff = eff.mul((player.Mg.MgO).add(1).log10())
+                                                    if(hasUpgrade("Mg",12)) eff = eff.pow(2)
+                                                    if(hasUpgrade("Mg",24)) eff = eff.pow(1.5)
+                                                    return eff},
+                                                    MgNeffect(){let eff = new Decimal(1)
+                                                    if(hasUpgrade("Mg",14)) eff = eff.mul((player.Mg.MgN).add(1).log10())
+                                                    if(hasUpgrade("Mg",15)) eff = eff.mul((eff.sqrt()))
+                                                    if(hasUpgrade("Mg",43)) eff = eff.pow(1.5)
+                                                    return eff
+
+                                                    },
+                                                    MgCO3effect(){let eff = new Decimal(1)
+                                                        if(hasUpgrade("Mg",42)) eff = eff.mul((player.Mg.MgCO3).add(1).log10())
+                                                        return eff
+
+
+                                                    },
                                                     
-                                                        color: "#104ea2",                       // The color for this layer, which affects many elements.
+                                                    effectDescription(){return "提升镁条燃烧效率<h2 style=color:#104ea2;text-shadow:0px 0px 10px;>" + format(tmp.Mg.effect) + "x<h2>"},
+
+                                                    
+                                                        color: "#104ea2", 
+                                                        nodeStyle() {
+                                                            return {
+                                                                background: (player.Mg.unlocked || canReset("Mg")) ? ("radial-gradient(circle, #666666 0%, #104ea2 100%)") : "#bf8f8f",
+                                                            }
+                                                        },                       // The color for this layer, which affects many elements.
                                                         resource: "镁",            // The name of this layer's main prestige resource.
                                                         row: 5,   
                                                         position: 2,                              // The row this layer is on (0 is the first row).
@@ -4499,6 +5070,332 @@ addLayer("He", {
                                                         },
                                                         branches:["Ne","Na"],
                                                         layerShown() { return player.H.points.gte("1e3000") },          // Returns a bool for if this layer's node should be visible in the tree.
+                                                        buyables:{
+                                                            11: {
+                                                                title: "镁原子",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("将化学方程式中镁的化学计量数增加1.")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return true},
+                                                                buy() { 
+                                                                     player.Mg.Balance11 = player.Mg.Balance11.add(1)
+                                                                     if(player.Mg.Balance11.gte(6))player.Mg.Balance11 = new Decimal(0)
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { return {'background-color': "#104ea2", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-color': "#003d91",'border-radius': "150px", height: "150px", width: "150px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            12: {
+                                                                title: "氟化氢分子",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("将化学方程式中氟化氢的化学计量数增加1.")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return true},
+                                                                buy() { 
+                                                                     player.Mg.Balance12 = player.Mg.Balance12.add(1)
+                                                                     if(player.Mg.Balance12.gte(6))player.Mg.Balance12 = new Decimal(0)
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { return {'background-color': "#FFFFFF", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#AAAAAA",'border-radius': "150px", height: "150px", width: "150px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            13: {
+                                                                title: "氟化镁分子",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("将化学方程式中氟化镁的化学计量数增加1.")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return true},
+                                                                buy() { 
+                                                                     player.Mg.Balance13 = player.Mg.Balance13.add(1)
+                                                                     if(player.Mg.Balance13.gte(6))player.Mg.Balance13 = new Decimal(0)
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { return {'background-color': "#FFCCFF", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#EEBBEE",'border-radius': "150px", height: "150px", width: "150px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            14: {
+                                                                title: "氢气分子",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("将化学方程式中氢气的化学计量数增加1.")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return true},
+                                                                buy() { 
+                                                                     player.Mg.Balance14 = player.Mg.Balance14.add(1)
+                                                                     if(player.Mg.Balance14.gte(6))player.Mg.Balance14 = new Decimal(0)
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { return {'background-color': "#6495ED", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#5284CB",'border-radius': "150px", height: "150px", width: "150px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            21: {
+                                                                title: "无",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("将反应条件设置为无")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return !getBuyableAmount(this.layer,this.id).gte(1)},
+                                                                buy() { 
+                                                                    player.Mg.Condition1 = new Decimal(1)
+                                                                     setBuyableAmount(this.layer,this.id,new Decimal(1))
+                                                                     setBuyableAmount(this.layer,22,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,23,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,24,new Decimal(0))
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { if(!getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#FFFFFF", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#AAAAAA",'border-radius': "10px", height: "100px", width: "150px"}
+                                                                if(getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#00FF00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00DD00",'border-radius': "10px", height: "100px", width: "150px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            22: {
+                                                                title: "高温、催化剂",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("将反应条件设置为高温、催化剂")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return !getBuyableAmount(this.layer,this.id).gte(1)},
+                                                                buy() { 
+                                                                    player.Mg.Condition1 = new Decimal(0)
+                                                                     setBuyableAmount(this.layer,this.id,new Decimal(1))
+                                                                     setBuyableAmount(this.layer,21,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,23,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,24,new Decimal(0))
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { if(!getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#FFFFFF", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#AAAAAA",'border-radius': "10px", height: "100px", width: "150px"}
+                                                                if(getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#00FF00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00DD00",'border-radius': "10px", height: "100px", width: "150px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            23: {
+                                                                title: "点燃",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("将反应条件设置为点燃")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return !getBuyableAmount(this.layer,this.id).gte(1)},
+                                                                buy() { 
+                                                                    player.Mg.Condition1 = new Decimal(0)
+                                                                     setBuyableAmount(this.layer,this.id,new Decimal(1))
+                                                                     setBuyableAmount(this.layer,22,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,21,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,24,new Decimal(0))
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { if(!getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#FFFFFF", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#AAAAAA",'border-radius': "10px", height: "100px", width: "150px"}
+                                                                if(getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#00FF00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00DD00",'border-radius': "10px", height: "100px", width: "150px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            24: {
+                                                                title: "加热",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("将反应条件设置为加热")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return !getBuyableAmount(this.layer,this.id).gte(1)},
+                                                                buy() { 
+                                                                    player.Mg.Condition1 = new Decimal(0)
+                                                                     setBuyableAmount(this.layer,this.id,new Decimal(1))
+                                                                     setBuyableAmount(this.layer,22,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,23,new Decimal(0))
+                                                                     setBuyableAmount(this.layer,21,new Decimal(0))
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { if(!getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#FFFFFF", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#AAAAAA",'border-radius': "10px", height: "100px", width: "150px"}
+                                                                if(getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#00FF00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00DD00",'border-radius': "10px", height: "100px", width: "150px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            31: {
+                                                                title: "验证答案",
+                                                                gain() { 
+                                                                    let gain = new Decimal(1)
+
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("点击验证答案是否正确。如果该Clickable变绿，则答案正确！<br>答对奖励：x1.5镁效应，x1.5研究力量")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return true }, 
+                                                                canAfford() { return !getBuyableAmount(this.layer,this.id).gte(1)},
+                                                                buy() { 
+                                                                    if((player.Mg.Condition1 == 1)&&(player.Mg.Balance11 == 1)&&(player.Mg.Balance12 == 2)&&(player.Mg.Balance13 == 1)&&(player.Mg.Balance14 == 1)) setBuyableAmount(this.layer,this.id,new Decimal(1))
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { if(!getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#FFFFFF", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#AAAAAA",'border-radius': "10px", height: "300px", width: "300px"}
+                                                                if(getBuyableAmount(this.layer,this.id).gte(1))return {'background-color': "#00FF00", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#00DD00",'border-radius': "10px", height: "300px", width: "300px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            41: {
+                                                                title: "充填氮气",
+                                                                gain() { 
+                                                                    let gain = new Decimal(5)
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("消耗你所拥有的90%氮，将镁燃烧的集气瓶中加入5%氮气")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return hasUpgrade("Mg",14) }, 
+                                                                canAfford() { return (!player.Mg.bar.gte(95))},
+                                                                buy() { 
+                                                                     player.Mg.bar = player.Mg.bar.add(5)
+                                                                     player.N.points = player.N.points.mul(0.1)
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { return {'background-color': "#FBB9DF", filter: "brightness("+new Decimal(100)+"%)", color: "black", 'border-color': "#D997BD",'border-radius': "25px", height: "100px", width: "300px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                            42: {
+                                                                title: "充填氧气",
+                                                                gain() { 
+                                                                    let gain = new Decimal(5)
+                                                                return gain
+                                                            },
+                                                                display() { // Everything else displayed in the buyable button after the title
+                                                                    let data = tmp[this.layer].buyables[this.id]
+                                                                    let display = ("消耗你所拥有的99%氧，将镁燃烧的集气瓶中加入5%氧气")
+                                                                    return display;
+                                                                },
+                                                                unlocked() { return hasUpgrade("Mg",14) }, 
+                                                                canAfford() { return player.Mg.bar.gte(5)},
+                                                                effect(){return new Decimal(5)},
+                                                                buy() { 
+                                                                     player.Mg.bar = player.Mg.bar.sub(5)
+                                                                     player.O.points = player.O.points.mul(0.01)
+                                                                     
+                                                                },
+                                                                buyMax() {
+                                                                    // I'll do this later ehehe
+                                                                },
+                                                                style() { return {'background-color': "#0066FF", filter: "brightness("+new Decimal(100)+"%)", color: "white", 'border-color': "#0044DD",'border-radius': "25px", height: "100px", width: "300px"}},
+                                                                autoed() { return false},
+                                                            },
+                                                        },
+                                                    })
+                                                    addLayer("Al", {
+                                                        startData() { return {                  // startData is a function that returns default data for a layer. 
+                                                            unlocked: true,                     // You can add more variables here to add them to your layer.
+                                                            points: new Decimal(0),             // "points" is the internal name for the main resource of the layer.
+                                                        }},
+                                                    
+                                                        color: "#BBBBFF",                       // The color for this layer, which affects many elements.
+                                                        resource: "铝",            // The name of this layer's main prestige resource.
+                                                        row: 5,                                 // The row this layer is on (0 is the first row).
+                                                        nodeStyle() {return {
+                                                            "background": "radial-gradient(#FFFFFF, #BBBBFF)" ,
+                                                        }},
+                                                        baseResource: "氢",                 // The name of the resource your prestige gain is based on.
+                                                        baseAmount() { return player.H.points },  // A function to return the current amount of baseResource.
+                                                    
+                                                        requires: new Decimal("1eeeeeeeeeeeeeeeeeeeeeeeeee10"), 
+                                                        position:99,
+                                                        branches:["Ne","Mg"],   
+                                                        resetsNothing(){return true}, 
+                                                        effectDescription(){return "此层级还未做好，实际做好后第一次铝重置需要1e11451氢"},         // The amount of the base needed to  gain 1 of the prestige currency.
+                                                                                                // Also the amount required to unlock the layer.
+                                                    
+                                                        type: "normal",                         // Determines the formula used for calculating prestige currency.
+                                                        exponent: 1e-308,                          // "normal" prestige gain is (currency^exponent).
+                                                    
+                                                        gainMult() {                            // Returns your multiplier to your gain of the prestige resource.
+                                                            return new Decimal(1)               // Factor in any bonuses multiplying gain here.
+                                                        },
+                                                        gainExp() {                             // Returns the exponent to your gain of the prestige resource.
+                                                            return new Decimal(1)
+                                                        },
+                                                    
+                                                        layerShown() { return hasUpgrade("Mg",45) },          // Returns a bool for if this layer's node should be visible in the tree.
                                                     
                                                         upgrades: {
                                                             // Look in the upgrades docs to see what goes here!
